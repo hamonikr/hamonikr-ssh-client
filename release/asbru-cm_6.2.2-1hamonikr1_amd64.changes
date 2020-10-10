@@ -1,0 +1,52 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Sat, 10 Oct 2020 15:00:20 +0900
+Source: asbru-cm
+Binary: asbru-cm
+Architecture: source all
+Version: 6.2.2-1hamonikr1
+Distribution: jin
+Urgency: medium
+Maintainer: Klaas Tammling <klaas@tammling.hamburg>
+Changed-By: HamoniKR <pkg@hamonikr.org>
+Description:
+ asbru-cm   - A free and open-source connection manager
+Changes:
+ asbru-cm (6.2.2-1hamonikr1) jin; urgency=medium
+ .
+   * rebuild for HamoniKR 4.0
+Checksums-Sha1:
+ 5d92dc92a9926d7ac4ae7ec81b33f1890f749282 1701 asbru-cm_6.2.2-1hamonikr1.dsc
+ 62830a6d83d54d912e8747f9d90a0687f8aa39f1 8656816 asbru-cm_6.2.2.orig.tar.xz
+ dd7428c34329485ef2a2e4755db561bf40ca9e6b 2520 asbru-cm_6.2.2-1hamonikr1.debian.tar.xz
+ 24d0c5db0a9b9c914bbc89b068c3ca31310cee63 415488 asbru-cm_6.2.2-1hamonikr1_all.deb
+ 1dfc60b9fbe7367860cc3c76b19976582bf19dbc 13735 asbru-cm_6.2.2-1hamonikr1_amd64.buildinfo
+Checksums-Sha256:
+ 9f828d22ab0bf37dd1692c5fafcdda72c80fd8b47bb64cd1a2507b1b1f9e300c 1701 asbru-cm_6.2.2-1hamonikr1.dsc
+ e4259d0994b84ca4b1b46cc644a83624154b9916ec947f00df645a69c65bf240 8656816 asbru-cm_6.2.2.orig.tar.xz
+ db66fe01e16feccc06eb6d23c8027a1caab7c5687d7e1813e051c786085c6e6c 2520 asbru-cm_6.2.2-1hamonikr1.debian.tar.xz
+ aa2241d3d1cfe992eb53070cf6161d42ad5bda80ab8000872b3425318b5c5cec 415488 asbru-cm_6.2.2-1hamonikr1_all.deb
+ 59d27c015d3ff6de2cd3c6962adfcbe86b279e31975568f1ea9fdd7b5d449e40 13735 asbru-cm_6.2.2-1hamonikr1_amd64.buildinfo
+Files:
+ eb5b18a51167048802064526e0b606e1 1701 networking optional asbru-cm_6.2.2-1hamonikr1.dsc
+ ad68b69422c78e814df749642b142759 8656816 networking optional asbru-cm_6.2.2.orig.tar.xz
+ 90be2a93f5ef2f830ad8a2d0068c388b 2520 networking optional asbru-cm_6.2.2-1hamonikr1.debian.tar.xz
+ 6450eff60901688a0d8ab8cbdf66636e 415488 networking optional asbru-cm_6.2.2-1hamonikr1_all.deb
+ b8e58814a0a441b8317c7cf2067f205f 13735 networking optional asbru-cm_6.2.2-1hamonikr1_amd64.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQHFBAEBCgAvFiEEBddK8XPCFPeFt5nhlVFZFYlQgcYFAl+BWkERHHBrZ0BoYW1v
+bmlrci5vcmcACgkQlVFZFYlQgcayeAv/RvhbHP0ZUAR2biCPRMpSL1C1vsYxZtP+
+2xpe/sGP/Ty3ROI83RP3JiLbHP0oYF/E3oIPthwh1ZQIobBXg+eMcF9bdQ9VU8KR
+rX8aT4lPW6JfiE6xQW75AVhefJmEhYl6FvbXu6S70qSbz8+LKiYJpPY11eP367TZ
+EjpORouthqrq+spTt6A9CNtpCsV9r/a6TYZaNSgE26Y6JKTcggK3Gyfue5+IRBrS
+b+soP1zsoX3ocU97hMB1eK207Zqi20EzGUZ49okXbir9cNhB97IctOEfZpZrkke5
+JkGcnFagMXgp6ZopEje0zqSHPKxtfrNli20mVB8S1l1sOjNSGUNM3pf2n8uclX71
+zVpESb6yHqR9fDicuiX391McZQdwMf1VsSGUhVC+9S6N+fPL5y/SBxwbCXNdADO0
+YunCrN57zIFRE81h78zInOBMAsugoDAa4AGoR+BGc31XP4DixydA/isjz2SCwuXV
+td55kOW0/8aMAAYm59RzLj4tCNGFvY6s
+=Phrn
+-----END PGP SIGNATURE-----
