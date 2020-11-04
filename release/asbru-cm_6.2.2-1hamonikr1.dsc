@@ -15,26 +15,28 @@ Build-Depends: debhelper (>= 9)
 Package-List:
  asbru-cm deb networking optional arch=all
 Checksums-Sha1:
- 62830a6d83d54d912e8747f9d90a0687f8aa39f1 8656816 asbru-cm_6.2.2.orig.tar.xz
+ 81827cdce23fae57c52896e4d650083a094bad60 16988624 asbru-cm_6.2.2.orig.tar.xz
  dd7428c34329485ef2a2e4755db561bf40ca9e6b 2520 asbru-cm_6.2.2-1hamonikr1.debian.tar.xz
 Checksums-Sha256:
- e4259d0994b84ca4b1b46cc644a83624154b9916ec947f00df645a69c65bf240 8656816 asbru-cm_6.2.2.orig.tar.xz
+ 25f9595c922e63a68c94e72b0e3cc4dfbadfed4dbceccba2f3043b738a8f562d 16988624 asbru-cm_6.2.2.orig.tar.xz
  db66fe01e16feccc06eb6d23c8027a1caab7c5687d7e1813e051c786085c6e6c 2520 asbru-cm_6.2.2-1hamonikr1.debian.tar.xz
 Files:
- ad68b69422c78e814df749642b142759 8656816 asbru-cm_6.2.2.orig.tar.xz
+ e60062e5e7f66a76ffbd5c9e0ccefb71 16988624 asbru-cm_6.2.2.orig.tar.xz
  90be2a93f5ef2f830ad8a2d0068c388b 2520 asbru-cm_6.2.2-1hamonikr1.debian.tar.xz
 
 -----BEGIN PGP SIGNATURE-----
 
-iQHFBAEBCgAvFiEEBddK8XPCFPeFt5nhlVFZFYlQgcYFAl+BWj0RHHBrZ0BoYW1v
-bmlrci5vcmcACgkQlVFZFYlQgcaAugv/Z1WzocT4QJ7bvtXthSYY6kKNYnKxeuNN
-4XiesPmqRj39Xr/gvGYS/k6UgUQXV2bEq9I6jWqr8EP8Gh0inar+nJMsk1y+vH2Q
-9i1syYrpdY/3B77GSLRIpDRVwJMvZzvHx/5xrundcCMKFCwMORr/i99UO6BJhaQq
-t8rujl9fJLx0N771SfnRxE0NPjOtgPVBQovLBIO9P9rqPrZ9/bmzGG4/QVKOLrBn
-WBC+Q0fuk8T+dDHqdEY8bs+DDDK65DSwwvuS/EZGF4LOQ4cLvaofRIlB/KfJ2fKr
-JUKnjdkw+m/fQgeQpmauYWafg3Px1L7kdXy94bGk5vnqRNZeq53/Hzs0H9K8Pywn
-ewlJDRa4gdgUuFmg4udVPDSXCOHIe1cmqTp7/J/smi4MIfRKih1ZwxWLefxALhCg
-Kl6UzJjCAi2LiFO6Zf6+lEBAhrJOxwenkOVx+WSjzVCDFfNBN7rGWJN6ZRNR/1iK
-pd2LneZYSL0yXxVfqSs7piCYU2lOE/gB
-=wYfW
+iQIzBAEBCgAdFiEEnvvSjKPjrOUQxZHwn6KYoeQmZbgFAl+ibVUACgkQn6KYoeQm
+Zbj8wA/+M5SXSXeJ+4l8t3B9kUxuWilPSZCNcKVPemKGXyuUKaWRaqqPUml2mhRW
+aMC/YCjl4kc5L6MXmsDPla9EN7IJEV6lrJWgZ1Jfl01O3hoc3wnQ5k9wG6n6uRJl
+N7DNgwCAPjH/zaL2yVc7TR/QxvKhSmAWL2NZ97EGRn0m7F4GDERLI+r0pkb+0O0M
++JSfQpo8F8eAnqANxMebMNkh2s2q9T68wz/8I4Swnv6DFS6Skg8GTm4uu60JzLZe
+UICxoOy98G/nzs5zZG5nH9vvgfoYW2D9t65bFTKZDDSeybm4M7DQtS5THDlGbizL
+VYue+m860imA6NxKSwN7G03SBmzrYReBL3o6kj+xUHiWwFR8iuSz+Oxx9g3EtWtd
+hymGheOfdg3cBPetzWTYZKnALK/rM7nYbM/qLauxBndTT0B+2VGmQLp2jqbGJ93t
+84wxMrEy6/FyYf4HeJWNk+OE6tM3oMY3u3s+6LNlnMb1L8xXexGrwX5+ohvsfQ1d
+2OxucgzkWihISCbyddy59t35/d9786tYlHGt/psSd3m3UFxNuIOmCyRCkxchMaEC
+9cPIgEGsWTxJEsY9e+OTwdwl5lX5ZgCMUqyXAn7W/IHV+RWCqD+ZTjxvufC1FnAP
+iJ7qYfj6+dytu/Tjed5s9bzEESsWD8hAApmlH/FBJVOB76NmfXY=
+=nN87
 -----END PGP SIGNATURE-----
