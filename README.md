@@ -1,6 +1,6 @@
-# SSH Client for HamoniKR
+# # SSH Client for HamoniKR
 
-SSH Client for HamoniKR 4.0
+SSH Client for HamoniKR 5.0
 
 upstream : [https://github.com/asbru-cm/asbru-cm](https://github.com/asbru-cm/asbru-cm)
 
@@ -38,11 +38,19 @@ upstream : [https://github.com/asbru-cm/asbru-cm](https://github.com/asbru-cm/as
 - HamoniKR / Debian / Ubuntu
 
   ````
-  curl -sL https://apt.hamonikr.org/setup_hamonikr.jin | sudo -E bash -
+  curl -sL https://pkg.hamonikr.org/add-hamonikr-5.0-hanla.apt | sudo -E bash -
 
   sudo apt install asbru-cm
   ````
 
+### BUILD
+
+- Rebuild HamoniKR 5.0 hanla
+- If fix changelog, control... etc > dist/deb/debian/
+  ````
+  ./build-for-hamonikr.sh
+  ````
+- find build folder & release folder
 
 ### License
 
@@ -65,3 +73,4 @@ The repositories for our RPM and DEB builds are thankfully sponsored by [package
 [rpm-url]: https://packagecloud.io/asbru-cm/asbru-cm?filter=rpms
 [liberapay-badge]: http://img.shields.io/liberapay/patrons/asbru-cm.svg?logo=liberapay
 [liberapay-url]: https://liberapay.com/asbru-cm/donate
+

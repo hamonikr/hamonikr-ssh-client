@@ -8,6 +8,7 @@ License:    GPLv3+
 URL:        https://asbru-cm.net
 Source0:    https://github.com/asbru-cm/asbru-cm/archive/%{version}.tar.gz
 BuildArch:  noarch
+Autoreq:    no 
 Requires:   perl
 Requires:   perl(Carp)
 Requires:   perl(Compress::Raw::Zlib)
@@ -44,16 +45,29 @@ Requires:   perl(strict)
 Requires:   perl(utf8)
 Requires:   perl(vars)
 Requires:   perl(warnings)
-Requires:   perl-X11-GUITest
 Requires:   vte291
-Requires:   ftp
-Requires:   telnet
 Requires:   bash
 Requires:   perl-Crypt-CBC
 Requires:   perl-Crypt-Rijndael
 Requires:   perl-IO-Tty
 Requires:   perl-IO-Stty
 Requires:   libwnck3
+Requires:   nmap-ncat
+%if 0%{?el7}
+Requires: telnet
+Requires: ftp
+%else
+Recommends: keepassxc
+Suggests: freerdp or rdesktop
+Suggests: tigervnc or tightvnc
+Suggests: mosh
+Suggests: cu
+Suggests: x3270-x11
+Suggests: tn5250
+Suggests: telnet
+Suggests: ftp
+Suggests: perl-X11-GUITest
+%endif
 BuildRequires: pkgconfig
 BuildRequires: bash-completion
 BuildRequires: desktop-file-utils
@@ -136,6 +150,15 @@ fi
 
 
 %changelog
+* Sat Feb 27 2021 Ásbrú Project Team <contact@asbru-cm.net> 6.3.2
+- 6.3.2 Release
+* Mon Feb 22 2021 Ásbrú Project Team <contact@asbru-cm.net> 6.3.1
+- 6.3.1 Release
+* Tue Feb 16 2021 Ásbrú Project Team <contact@asbru-cm.net> 6.3.0
+- 6.3.0 Release
+* Sat Nov 07 2020 Ásbrú Project Team <contact@asbru-cm.net> 6.2.2
+- 6.2.2 release
+- Moved repositories from Packagecloud to Cloudsmith
 * Sat Jun 06 2020 Ásbrú Project Team <contact@asbru-cm.net> 6.2.1
 - 6.2.1 release
 * Fri May 15 2020 Ásbrú Project Team <contact@asbru-cm.net> 6.2.0

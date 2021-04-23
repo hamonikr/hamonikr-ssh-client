@@ -3,7 +3,7 @@ package PACEdit;
 ###############################################################################
 # This file is part of Ásbrú Connection Manager
 #
-# Copyright (C) 2017-2020 Ásbrú Connection Manager team (https://asbru-cm.net)
+# Copyright (C) 2017-2021 Ásbrú Connection Manager team (https://asbru-cm.net)
 # Copyright (C) 2010-2016 David Torrejon Vaquerizas
 #
 # Ásbrú Connection Manager is free software: you can redistribute it and/or
@@ -177,6 +177,13 @@ sub _initGUI {
     $$self{_WINDOWEDIT}->set_size_request(-1, 550);
 
     _($self, 'imgBannerEditIcon')->set_from_file($THEME_DIR . '/asbru-edit.svg');
+    _($self, "linkHelpConn1")->set_label('');
+    _($self, "linkHelpConn1")->set_image(Gtk3::Image->new_from_stock('asbru-help', 'button'));
+    _($self, "linkHelpNetwokSettings")->set_label('');
+    _($self, "linkHelpNetwokSettings")->set_image(Gtk3::Image->new_from_stock('asbru-help', 'button'));
+
+    _($self, 'btnEditNetworkSettingsCheckKPX')->set_label('');
+    _($self, 'btnEditNetworkSettingsCheckKPX')->set_image(Gtk3::Image->new_from_stock('asbru-keepass', 'button') );
 
     $$self{_SPECIFIC} = PACMethod->new();
     _($self, 'alignSpecific')->add($PACMethod::CONTAINER);
@@ -185,8 +192,8 @@ sub _initGUI {
     _($self, 'alignVar')->add(($$self{_VARIABLES} = PACVarEntry->new())->{container});
     _($self, 'alignPreExec')->add(($$self{_PRE_EXEC} = PACPrePostEntry->new())->{container});
     _($self, 'alignPostExec')->add(($$self{_POST_EXEC} = PACPrePostEntry->new())->{container});
-    _($self, 'alignMacros')->add(($$self{_MACROS} = PACExecEntry->new())->{container});
-    _($self, 'alignLocal')->add(($$self{_LOCAL_EXEC} = PACExecEntry->new())->{container});
+    _($self, 'alignMacros')->add(($$self{_MACROS} = PACExecEntry->new(undef, undef, 'cremote'))->{container});
+    _($self, 'alignLocal')->add(($$self{_LOCAL_EXEC} = PACExecEntry->new(undef, undef, 'clocal'))->{container});
     _($self, 'alignExpect')->add(($$self{_EXPECT_EXEC} = PACExpectEntry->new())->{container});
     _($self, 'nbProps')->show_all();
 
@@ -221,6 +228,10 @@ sub __checkRBAuth {
     my $self = shift;
 
     if (_($self, 'comboMethod')->get_active_text() =~ /SSH|SFTP/i) {
+        _($self, 'entryCfgJumpConnPass')->set_sensitive(1);
+        _($self, 'entryCfgJumpConnPass')->set_visible(1);
+        _($self, 'lblJumpPass')->set_sensitive(1);
+        _($self, 'lblJumpPass')->set_visible(1);
         if(_($self, 'rbCfgAuthManual')->get_active()) {
             _($self, 'frameExpect')->set_sensitive(0);
             _($self, 'labelExpect')->set_sensitive(0);
@@ -247,7 +258,12 @@ sub __checkRBAuth {
         _($self, 'rbUseProxyJump')->set_tooltip_text("If selected, use a SSH tunnel to simulate a jump host for this connection.");
         _($self, 'vboxJumpCfgOptions')->set_sensitive(_($self, 'rbUseProxyJump')->get_active());
         _($self, 'vboxJumpCfg')->set_visible(1);
+        _($self, 'entryCfgJumpConnPass')->set_sensitive(0);
+        _($self, 'entryCfgJumpConnPass')->set_visible(0);
         _($self, 'vboxCfgManualProxyConn')->set_visible(1);
+        _($self, 'lblJumpPass')->set_sensitive(0);
+        _($self, 'lblJumpPass')->set_visible(0);
+        _($self, 'entryCfgJumpConnPass')->set_text('');
     } else {
         if (_($self, 'rbUseProxyJump')->get_active()) {
             _($self, 'rbUseProxyIfCFG')->set_active(1);
@@ -290,6 +306,7 @@ sub _setupCallbacks {
 
         &{$$self{_METHODS}{$method}{'updateGUI'}}($$self{_CFG}{'environments'}{$$self{_UUID}});
         $$self{_SPECIFIC}->change($method, $$self{_CFG}{'environments'}{$$self{_UUID}});
+        $$self{_WINDOWEDIT}->show_all(); # Without this line, $$self{_SPECIFIC} widgets WILL NOT BE SHOWN!!!!!!!!!
         __checkRBAuth($self);
     });
 
@@ -339,11 +356,15 @@ sub _setupCallbacks {
     _($self, 'btnEditGetCMD')->signal_connect('clicked' => sub {
         # DevNote: please make sure to keep double quotes in "$RealBin/lib/asbru_conn" since it might be replaced by packagers (see RPM spec)
         if (!$ENV{'KPXC_MP'} && $PACMain::FUNCS{_KEEPASS}->hasKeePassField($$self{_CFG},$$self{_UUID})) {
-            my $kpxc = PACKeePass->new(0, $$self{_CFG}{defaults}{keepass});
-            $kpxc->getMasterPassword($$self{_WINDOWEDIT});
+            if ($$self{_CFG}{defaults}{keepass}{password}) {
+                $ENV{'KPXC_MP'} = $$self{_CFG}{defaults}{keepass}{password};
+            } else {
+                my $kpxc = PACKeePass->new(0, $$self{_CFG}{defaults}{keepass});
+                $kpxc->getMasterPassword($$self{_WINDOWEDIT});
+            }
         }
         my $cmd = `"$RealBin/lib/asbru_conn" $CFG_DIR/asbru.nfreeze $$self{_UUID} 0 1`;
-        _wMessage($$self{_WINDOWEDIT}, $cmd, 1, 1);
+        _wMessage($$self{_WINDOWEDIT}, $cmd, 1, 1, 'w-info');
     });
 
     # Capture "Save session logs" checkbox
@@ -359,6 +380,9 @@ sub _setupCallbacks {
 
     # Capture 'check keepassx' button clicked
     _($self, 'btnCheckKPX')->signal_connect('clicked' => sub {
+        if (!$ENV{'KPXC_MP'} && $$self{_CFG}{defaults}{keepass}{password}) {
+            $ENV{'KPXC_MP'} = $$self{_CFG}{defaults}{keepass}{password};
+        }
         my $selection = $PACMain::FUNCS{_KEEPASS}->listEntries($$self{_WINDOWEDIT});
         if ($selection) {
             # Commented for the time being, until keepassxc-cli team implements get the UUID
@@ -369,6 +393,7 @@ sub _setupCallbacks {
             # For the time being, we will use the full path
             my $title = $selection;
             if ($title) {
+                _($self, 'entryIP')->set_text("<url|$title>");
                 if (_($self, 'rbCfgAuthUserPass')->get_active) {
                     _($self, 'entryUser')->set_text("<username|$title>");
                     _($self, 'entryPassword')->set_text("<password|$title>");
@@ -464,11 +489,13 @@ sub _setupCallbacks {
     # Capture proxy usage change
     _($self, 'rbUseProxyAlways')->signal_connect('toggled' => sub {
         _($self, 'vboxCfgManualProxyConnOptions')->set_sensitive(_($self, 'rbUseProxyAlways')->get_active());
+        _updateCfgProxyKeePass($self);
     });
 
     # Capture jump host change
     _($self, 'rbUseProxyJump')->signal_connect('toggled' => sub {
         _($self, 'vboxJumpCfgOptions')->set_sensitive(_($self, 'rbUseProxyJump')->get_active());
+        _updateCfgProxyKeePass($self);
     });
 
     _($self, 'btnEditClearJumpPrivateKey')->signal_connect('clicked' => sub {
@@ -482,7 +509,7 @@ sub _setupCallbacks {
     });
 
     # Capture right mouse click to show custom context menu
-    foreach my $w ('IP', 'Port', 'User', 'Password', 'EditPrependCommand', 'TabWindowTitle', 'UserPassphrase', 'Passphrase') {_($self, "entry$w")->signal_connect('button_press_event' => sub {
+    foreach my $w ('IP', 'Port', 'User', 'Password', 'EditPrependCommand', 'TabWindowTitle', 'UserPassphrase', 'Passphrase','CfgProxyConnUser','CfgProxyConnPassword','CfgJumpConnUser','CfgJumpConnPass','CfgProxyConnIP','CfgJumpConnIP') {_($self, "entry$w")->signal_connect('button_press_event' => sub {
             my ($widget, $event) = @_;
 
             return 0 unless $event->button eq 3;
@@ -576,8 +603,12 @@ sub _setupCallbacks {
                 }
             });
 
-            if ($w eq 'IP') {
+            if ($w eq 'IP' || $w =~ /ConnIP/) {
                 $PACMain::FUNCS{_KEEPASS}->setRigthClickMenuEntry($PACMain::FUNCS{_EDIT}{_WINDOWEDIT},'url',_($self, "entry$w"),\@menu_items);
+            } elsif ($w =~ /ConnUser/) {
+                $PACMain::FUNCS{_KEEPASS}->setRigthClickMenuEntry($PACMain::FUNCS{_EDIT}{_WINDOWEDIT},'username',_($self, "entry$w"),\@menu_items);
+            } elsif ($w =~ /ConnPass/) {
+                $PACMain::FUNCS{_KEEPASS}->setRigthClickMenuEntry($PACMain::FUNCS{_EDIT}{_WINDOWEDIT},'password',_($self, "entry$w"),\@menu_items);
             }
 
             _wPopUpMenu(\@menu_items, $event);
@@ -607,6 +638,24 @@ sub _setupCallbacks {
         _($self, 'cbStartScript')->get_active() and _($self, 'comboStartScript')->popup();
     });
 
+    # Associated proxy settings to KeePass entries
+    _($self, 'btnEditNetworkSettingsCheckKPX')->signal_connect('clicked' => sub {
+        # User selects an entry in KeePass
+        my $title = $PACMain::FUNCS{_KEEPASS}->listEntries($$self{_WINDOWEDIT});
+
+        if ($title) {
+            if (_($self, 'rbUseProxyAlways')->get_active) {
+                _($self, 'entryCfgProxyConnIP')->set_text("<url|$title>");
+                _($self, 'entryCfgProxyConnUser')->set_text("<username|$title>");
+                _($self, 'entryCfgProxyConnPassword')->set_text("<password|$title>");
+            } elsif (_($self, 'rbUseProxyJump')->get_active) {
+                _($self, 'entryCfgJumpConnIP')->set_text("<url|$title>");
+                _($self, 'entryCfgJumpConnUser')->set_text("<username|$title>");
+                _($self, 'entryCfgJumpConnPass')->set_text("<password|$title>");
+            }
+        }
+    });
+
     return 1;
 }
 
@@ -634,10 +683,13 @@ sub _updateGUIPreferences {
     _($self, 'entryCfgProxyConnIP')->set_text($$self{_CFG}{'environments'}{$uuid}{'proxy ip'} // '');
     _($self, 'entryCfgProxyConnPort')->set_value($$self{_CFG}{'environments'}{$uuid}{'proxy port'} // 8080);
     _($self, 'entryCfgProxyConnUser')->set_text($$self{_CFG}{'environments'}{$uuid}{'proxy user'} // '');
+    _($self, 'entryCfgProxyConnPassword')->set_text($$self{_CFG}{'environments'}{$uuid}{'proxy pass'} // '');
     # Jump Server
     _($self, 'entryCfgJumpConnIP')->set_text($$self{_CFG}{'environments'}{$uuid}{'jump ip'} // '');
     _($self, 'entryCfgJumpConnPort')->set_value($$self{_CFG}{'environments'}{$uuid}{'jump port'} // 22);
     _($self, 'entryCfgJumpConnUser')->set_text($$self{_CFG}{'environments'}{$uuid}{'jump user'} // '');
+    _($self, 'entryCfgJumpConnPass')->set_text($$self{_CFG}{'environments'}{$uuid}{'jump pass'} // '');
+    _($self, 'chkPseudoJumpServer')->set_active($$self{_CFG}{'environments'}{$uuid}{'pseudo jump'} // 0);
     if ((defined $$self{_CFG}{'environments'}{$uuid}{'jump key'})&&($$self{_CFG}{'environments'}{$uuid}{'jump key'} ne '')) {
         _($self, 'entryCfgJumpConnKey')->set_uri("file://$$self{_CFG}{'environments'}{$uuid}{'jump key'}");
     } else {
@@ -684,6 +736,7 @@ sub _updateGUIPreferences {
     _($self, 'cbAutossh')->set_active($$self{_CFG}{'environments'}{$uuid}{'autossh'} // 0);
     _($self, 'entryUUID')->set_text($uuid);
     _($self, 'cbCfgRemoveCtrlChars')->set_active($$self{_CFG}{'environments'}{$uuid}{'remove control chars'});
+    _($self, 'cbCfgLogTimestamp')->set_active($$self{_CFG}{'environments'}{$uuid}{'log timestamp'});
 
     # Populate 'comboStartScript' combobox
     _($self, 'comboStartScript')->remove_all();
@@ -711,8 +764,8 @@ sub _updateGUIPreferences {
     $$self{_VARIABLES}->update($$self{_CFG}{'environments'}{$uuid}{'variables'});
     $$self{_PRE_EXEC}->update($$self{_CFG}{'environments'}{$uuid}{'local before'}, $$self{_CFG}{'environments'}{$uuid}{'variables'});
     $$self{_POST_EXEC}->update($$self{_CFG}{'environments'}{$uuid}{'local after'}, $$self{_CFG}{'environments'}{$uuid}{'variables'});
-    $$self{_MACROS}->update($$self{_CFG}{'environments'}{$uuid}{'macros'}, $$self{_CFG}{'environments'}{$uuid}{'variables'}, 'remote');
-    $$self{_LOCAL_EXEC}->update($$self{_CFG}{'environments'}{$uuid}{'local connected'}, $$self{_CFG}{'environments'}{$uuid}{'variables'}, 'local');
+    $$self{_MACROS}->update($$self{_CFG}{'environments'}{$uuid}{'macros'}, $$self{_CFG}{'environments'}{$uuid}{'variables'}, 'remote', $uuid);
+    $$self{_LOCAL_EXEC}->update($$self{_CFG}{'environments'}{$uuid}{'local connected'}, $$self{_CFG}{'environments'}{$uuid}{'variables'}, 'local', $uuid);
     _($self, 'frameExpect')->set_sensitive(! _($self, 'rbCfgAuthManual')->get_active());
     _($self, 'labelExpect')->set_sensitive(! _($self, 'rbCfgAuthManual')->get_active());
     $$self{_EXPECT_EXEC}->update($$self{_CFG}{'environments'}{$uuid}{'expect'}, $$self{_CFG}{'environments'}{$uuid}{'variables'});
@@ -765,6 +818,8 @@ sub _updateGUIPreferences {
         _($self, 'vboxJumpCfgOptions')->set_sensitive(0);
     }
 
+    _updateCfgProxyKeePass($self);
+
     return 1;
 }
 
@@ -810,6 +865,8 @@ sub _saveConfiguration {
     $$self{_CFG}{'environments'}{$uuid}{'jump ip'} = _($self, 'entryCfgJumpConnIP')->get_chars(0, -1);
     $$self{_CFG}{'environments'}{$uuid}{'jump port'} = _($self, 'entryCfgJumpConnPort')->get_chars(0, -1);
     $$self{_CFG}{'environments'}{$uuid}{'jump user'} = _($self, 'entryCfgJumpConnUser')->get_chars(0, -1);
+    $$self{_CFG}{'environments'}{$uuid}{'jump pass'} = _($self, 'entryCfgJumpConnPass')->get_chars(0, -1);
+    $$self{_CFG}{'environments'}{$uuid}{'pseudo jump'} = _($self, 'chkPseudoJumpServer')->get_active();
     if (_($self, 'rbCfgAuthUserPass')->get_active()) {
         $$self{_CFG}{'environments'}{$uuid}{'auth type'} = 'userpass';
     } elsif (_($self, 'rbCfgAuthPublicKey')->get_active()) {
@@ -858,7 +915,41 @@ sub _saveConfiguration {
     $$self{_CFG}{'environments'}{$uuid}{'startup script name'} = _($self, 'comboStartScript')->get_active_text;
     $$self{_CFG}{'environments'}{$uuid}{'autossh'} = _($self, 'cbAutossh')->get_active;
     $$self{_CFG}{'environments'}{$uuid}{'remove control chars'} = _($self, 'cbCfgRemoveCtrlChars')->get_active;
+    $$self{_CFG}{'environments'}{$uuid}{'log timestamp'} = _($self, 'cbCfgLogTimestamp')->get_active;
 
+    # Remove lefovers from user in : network connections and authentication
+    if ($$self{_CFG}{'environments'}{$uuid}{'auth type'} eq 'userpass') {
+        $$self{_CFG}{'environments'}{$uuid}{'passphrase user'} = '';
+        $$self{_CFG}{'environments'}{$uuid}{'passphrase'} = '';
+    } elsif ($$self{_CFG}{'environments'}{$uuid}{'auth type'} eq 'publickey') {
+        $$self{_CFG}{'environments'}{$uuid}{'user'} = '';
+        $$self{_CFG}{'environments'}{$uuid}{'pass'} = '';
+    } else {
+        $$self{_CFG}{'environments'}{$uuid}{'passphrase user'} = '';
+        $$self{_CFG}{'environments'}{$uuid}{'passphrase'} = '';
+        $$self{_CFG}{'environments'}{$uuid}{'user'} = '';
+        $$self{_CFG}{'environments'}{$uuid}{'pass'} = '';
+    }
+
+    if ($$self{_CFG}{'environments'}{$uuid}{'use proxy'} == 1) {
+        # Use proxy
+        $$self{_CFG}{'environments'}{$uuid}{'jump ip'} = '';
+        $$self{_CFG}{'environments'}{$uuid}{'jump user'} = '';
+        $$self{_CFG}{'environments'}{$uuid}{'jump pass'} = '';
+    } elsif ($$self{_CFG}{'environments'}{$uuid}{'use proxy'} == 3) {
+        # Jump Server
+        $$self{_CFG}{'environments'}{$uuid}{'proxy ip'} = '';
+        $$self{_CFG}{'environments'}{$uuid}{'proxy user'} = '';
+        $$self{_CFG}{'environments'}{$uuid}{'proxy pass'} = '';
+    } else {
+        # Global or direct connection
+        $$self{_CFG}{'environments'}{$uuid}{'proxy ip'} = '';
+        $$self{_CFG}{'environments'}{$uuid}{'proxy user'} = '';
+        $$self{_CFG}{'environments'}{$uuid}{'proxy pass'} = '';
+        $$self{_CFG}{'environments'}{$uuid}{'jump ip'} = '';
+        $$self{_CFG}{'environments'}{$uuid}{'jump user'} = '';
+        $$self{_CFG}{'environments'}{$uuid}{'jump pass'} = '';
+    }
     ##################
     # Other options...
     ##################
@@ -895,6 +986,12 @@ sub _closeConfiguration {
     my $self = shift;
 
     $$self{_WINDOWEDIT}->hide();
+}
+
+sub _updateCfgProxyKeePass {
+    my $self = shift;
+
+    _($self, 'btnEditNetworkSettingsCheckKPX')->set_sensitive($$self{'_CFG'}{'defaults'}{'keepass'}{'use_keepass'} && (_($self, 'rbUseProxyAlways')->get_active() || _($self, 'rbUseProxyJump')->get_active()));
 }
 
 # END: Define PRIVATE CLASS functions

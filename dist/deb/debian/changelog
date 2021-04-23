@@ -1,14 +1,40 @@
-asbru-cm (6.2.2-1hamonikr1) jin; urgency=medium
+asbru-cm (6.3.2-1) hanla; urgency=medium
 
-  * rebuild for HamoniKR 4.0
+  * Rebuild for HamoniKR 5.0 hanla
+  * Recent Ver. Release
 
- -- HamoniKR <pkg@hamonikr.org>  Sat, 10 Oct 2020 15:00:20 +0900
+ -- HamoniKR <pkg@hamonikr.org>  Fri, 23 Apr 2021 14:48:22 +0900
 
+asbru-cm (6.3.2-1) stable; urgency=medium
+
+  * Upstream 6.3.2
+
+ -- Ásbrú Project Team <contact@asbru-cm.net>  Sat, 27 Feb 2021 10:00:00 +0100
+ 
+asbru-cm (6.3.1-1) stable; urgency=medium
+
+  * Upstream 6.3.1
+
+ -- Ásbrú Project Team <contact@asbru-cm.net>  Mon, 22 Feb 2021 23:00:00 +0100
+ 
+asbru-cm (6.3.0-1) stable; urgency=medium
+
+  * Upstream 6.3.0
+
+ -- Ásbrú Project Team <contact@asbru-cm.net>  Tue, 16 Feb 2021 15:00:00 +0100
+ 
+asbru-cm (6.2.2-1) stable; urgency=medium
+
+  * Upstream 6.2.2 release
+  * Moved repositories from Packagecloud to Cloudsmith
+
+ -- Ásbrú Project Team <contact@asbru-cm.net>  Sat, 07 Nov 2020 12:00:00 +0100
+ 
 asbru-cm (6.2.1-1) stable; urgency=medium
 
   * Upstream 6.2.1 release
 
- -- Ásbrú Project Team <contact@asbru-cm.net> Sat, 6 Jun 2020 21:00:00 +0200
+ -- Ásbrú Project Team <contact@asbru-cm.net>  Sat, 06 Jun 2020 21:00:00 +0200
 
 asbru-cm (6.2.0-1) stable; urgency=medium
 

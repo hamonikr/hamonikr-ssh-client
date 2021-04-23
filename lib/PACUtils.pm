@@ -3,7 +3,7 @@ package PACUtils;
 ###############################################################################
 # This file is part of Ásbrú Connection Manager
 #
-# Copyright (C) 2017-2020 Ásbrú Connection Manager team (https://asbru-cm.net)
+# Copyright (C) 2017-2021 Ásbrú Connection Manager team (https://asbru-cm.net)
 # Copyright (C) 2010-2016 David Torrejón Vaquerizas
 #
 # Ásbrú Connection Manager is free software: you can redistribute it and/or
@@ -80,6 +80,8 @@ require Exporter;
     _wExecEntry
     _cfgCheckMigrationV3
     _cfgSanityCheck
+    _cfgGetTmpSessions
+    _cfgAddSessions
     _updateSSHToIPv6
     _cipherCFG
     _decipherCFG
@@ -119,7 +121,7 @@ require Exporter;
 # Define GLOBAL CLASS variables
 
 our $APPNAME = 'SSH Connection Manager';
-our $APPVERSION = '6.2.2';
+our $APPVERSION = '6.3.3';
 our $DEBUG_LEVEL = 1;
 our $ARCH = '';
 my $ARCH_TMP = `/bin/uname -m 2>&1`;
@@ -214,18 +216,15 @@ our @DONATORS_LIST = (
 );
 our @PACDESKTOP = (
     '[Desktop Entry]',
-    'Name=SSH Connection Manager',
+    'Name=Ásbrú Connection Manager',
     'Comment=A user interface that helps organizing remote terminal sessions and automating repetitive tasks',
     'Terminal=false',
     'Icon=pac',
     'Type=Application',
-    'Exec=/usr/bin/asbru-cm --no-splash',
+    'Exec=env GDK_BACKEND=x11 /usr/bin/asbru-cm --no-splash',
     'StartupNotify=false',
-    'Name[en_US]=SSH Connection Manager',
+    'Name[en_US]=Ásbrú Connection Manager',
     'Comment[en_US]=A user interface that helps organizing remote terminal sessions and automating repetitive tasks',
-    'Name[ko]=SSH Client',
-    'Comment[ko]=원격 접속을 위한 SSH 접속 프로그램',
-    'Keywords=ssh;terminal,remote,시큐어쉘,telnel,scp,sftp,connection,emulator,putty,term',
     'Categories=Applications;Network;',
     'X-GNOME-Autostart-enabled=true',
 );
@@ -412,6 +411,7 @@ sub _getMethods {
             _($self, 'entryUser')->set_sensitive(1);
             _($self, 'entryUser')->set_text($$cfg{user} // '');
             _($self, 'entryPassword')->set_text($$cfg{pass} // '');
+            _($self, 'alignAuthMethod')->set_sensitive(1);
             _($self, 'cbCfgAuthFallback')->set_sensitive(0);
             _($self, 'vboxAuthMethod')->set_sensitive(1);
             _($self, 'alignUserPass')->set_sensitive(1);
@@ -483,6 +483,7 @@ sub _getMethods {
             _($self, 'entryUser')->set_sensitive(1);
             _($self, 'entryUser')->set_text($$cfg{user} // '');
             _($self, 'entryPassword')->set_text($$cfg{pass} // '');
+            _($self, 'alignAuthMethod')->set_sensitive(1);
             _($self, 'cbCfgAuthFallback')->set_sensitive(0);
             _($self, 'vboxAuthMethod')->set_sensitive(1);
             _($self, 'alignUserPass')->set_sensitive(1);
@@ -554,6 +555,7 @@ sub _getMethods {
             _($self, 'entryUser')->set_text($$cfg{user} // '');
             _($self, 'entryPassword')->set_text($$cfg{pass} // '');
             _($self, 'cbCfgAuthFallback')->set_sensitive(0);
+            _($self, 'alignAuthMethod')->set_sensitive(1);
             _($self, 'alignUserPass')->set_sensitive(1);
             _($self, 'rbCfgAuthUserPass')->set_active($$cfg{'auth type'} eq 'userpass');
             _($self, 'framePublicKey')->set_sensitive(0);
@@ -763,9 +765,6 @@ sub _getMethods {
             if (! _($self, 'entryIP')->get_chars(0, -1)) {
                 push(@faults, 'IP/Hostname cannot be empty');
             }
-            if (! _($self, 'entryPort')->get_chars(0, -1)) {
-                push(@faults, 'Port cannot be empty');
-            }
             if (_($self, 'rbCfgAuthUserPass')->get_active() && !_($self, 'entryUser')->get_chars(0, -1)) {
                 push(@faults, 'User name cannot be empty if User/Password authentication method selected');
             }
@@ -782,6 +781,7 @@ sub _getMethods {
             _($self, 'imageConnOptions')->set_from_pixbuf($pixbuf);
             #_($self, 'vboxVarious')->set_sensitive(1);
             _($self, 'framePort')->set_sensitive(1);
+            _($self, 'entryPort')->set_range(0, 65536);
             _($self, 'entryPort')->set_value($method eq $$cfg{method} ? $$cfg{port} : 22);
             _($self, 'labelIP')->set_text('Host: ');
             _($self, 'entryIP')->set_property('tooltip-markup', 'IP or Hostname of the machine to connect to');
@@ -796,6 +796,7 @@ sub _getMethods {
             _($self, 'labelTerminalOptions')->set_sensitive(1);
             _($self, 'vboxAuthMethod')->set_sensitive(1);
             _($self, 'entryUser')->set_sensitive(1);
+            _($self, 'alignAuthMethod')->set_sensitive(1);
             _($self, 'alignUserPass')->set_sensitive(1);
             _($self, 'rbCfgAuthUserPass')->set_active($$cfg{'auth type'} eq 'userpass');
             _($self, 'framePublicKey')->set_sensitive(1);
@@ -860,6 +861,7 @@ sub _getMethods {
             _($self, 'labelTerminalOptions')->set_sensitive(1);
             _($self, 'vboxAuthMethod')->set_sensitive(1);
             _($self, 'entryUser')->set_sensitive(1);
+            _($self, 'alignAuthMethod')->set_sensitive(1);
             _($self, 'alignUserPass')->set_sensitive(1);
             _($self, 'rbCfgAuthUserPass')->set_active($$cfg{'auth type'} eq 'userpass');
             _($self, 'framePublicKey')->set_sensitive(1);
@@ -925,6 +927,7 @@ sub _getMethods {
             _($self, 'labelTerminalOptions')->set_sensitive(1);
             _($self, 'vboxAuthMethod')->set_sensitive(1);
             _($self, 'entryUser')->set_sensitive(1);
+            _($self, 'alignAuthMethod')->set_sensitive(1);
             _($self, 'alignUserPass')->set_sensitive(1);
             _($self, 'rbCfgAuthUserPass')->set_active($$cfg{'auth type'} eq 'userpass');
             _($self, 'framePublicKey')->set_sensitive(0);
@@ -996,6 +999,7 @@ sub _getMethods {
             _($self, 'rbCfgAuthUserPass')->set_active(1);
             _($self, 'rbCfgAuthUserPass')->set_active($$cfg{'auth type'} eq 'userpass');
             _($self, 'framePublicKey')->set_sensitive(0);
+            _($self, 'alignAuthMethod')->set_sensitive(1);
             _($self, 'rbCfgAuthManual')->set_sensitive(1);
             _($self, 'rbCfgAuthManual')->set_active($$cfg{'auth type'} eq 'manual');
             _($self, 'entryPassphrase')->set_text('');
@@ -1068,6 +1072,7 @@ sub _getMethods {
             _($self, 'entryPassphrase')->set_text($$cfg{passphrase} // '');
             _($self, 'fileCfgPublicKey')->set_filename($$cfg{'public key'} // '');
             _($self, 'rbCfgAuthPublicKey')->set_active($$cfg{'auth type'} eq 'publickey');
+            _($self, 'alignAuthMethod')->set_sensitive(1);
             _($self, 'alignManual')->set_sensitive(1);
             _($self, 'rbCfgAuthUserPass')->set_active($$cfg{'auth type'} eq 'manual');
             _($self, 'frameExpect')->set_sensitive(1);
@@ -1127,6 +1132,7 @@ sub _getMethods {
             _($self, 'labelTerminalOptions')->set_sensitive(1);
             _($self, 'vboxAuthMethod')->set_sensitive(1);
             _($self, 'entryUser')->set_sensitive(1);
+            _($self, 'alignAuthMethod')->set_sensitive(1);
             _($self, 'rbCfgAuthUserPass')->set_active(1);
             _($self, 'rbCfgAuthUserPass')->set_active($$cfg{'auth type'} eq 'userpass');
             _($self, 'framePublicKey')->set_sensitive(0);
@@ -1323,7 +1329,8 @@ sub _menuFavouriteConnections {
             next;
         }
 
-        my $name = $$cfg{'environments'}{$uuid}{'name'};
+        my $group = $$cfg{'environments'}{$uuid}{'parent'} ? "$$cfg{'environments'}{$$cfg{'environments'}{$uuid}{'parent'}}{'name'} : " : '';
+        my $name = "$group$$cfg{'environments'}{$uuid}{'name'}";
 
         if ($terminal) {
             push(@fav, {
@@ -1452,7 +1459,8 @@ sub _wEnterValue {
     my $lbldown = shift;
     my $default = shift;
     my $visible = shift // 1;
-    my $stock_icon = shift // 'gtk-edit';
+    my $stock_icon = shift // 'asbru-help';
+    my $entry;
     my @list;
     my $pos = -1;
     my %w;
@@ -1477,29 +1485,36 @@ sub _wEnterValue {
             $parent = $WINDOWSPLASH{_GUI};
         }
     }
-
+    if (!$stock_icon) {
+        $stock_icon = 'asbru-help';
+    }
     # Create the dialog window,
     $w{window}{data} = Gtk3::Dialog->new_with_buttons(
-        "$APPNAME (v$APPVERSION) : Enter data",
-        undef,
+        "$APPNAME : Enter data",
+        $parent,
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok' => 'ok'
     );
     # and setup some dialog properties.
+    $w{window}{data}->set_decorated(0);
+    $w{window}{data}->get_style_context()->add_class('w-entervalue');
     $w{window}{data}->set_default_response('ok');
     if (!$parent) {
         $w{window}{data}->set_position('center');
     }
     $w{window}{data}->set_icon_name('asbru-app-big');
-    $w{window}{data}->set_size_request(-1, -1);
     $w{window}{data}->set_resizable(0);
     $w{window}{data}->set_border_width(5);
 
+    # Create a VBox to avoid vertical expansions
+    $w{window}{gui}{vbox} = Gtk3::VBox->new(0, 0);
+    $w{window}{data}->get_content_area->pack_start($w{window}{gui}{vbox}, 0, 0, 0);
+
     # Create an HBox to contain a picture and a label
     $w{window}{gui}{hbox} = Gtk3::HBox->new(0, 0);
-    $w{window}{data}->get_content_area->pack_start($w{window}{gui}{hbox}, 1, 1, 5);
-    $w{window}{gui}{hbox}->set_border_width(5);
+    $w{window}{gui}{hbox}->set_border_width(0);
+    $w{window}{gui}{vbox}->pack_start($w{window}{gui}{hbox}, 0, 0, 5);
 
     # Create image
     $w{window}{gui}{img} = Gtk3::Image->new_from_stock($stock_icon, 'dialog');
@@ -1507,18 +1522,18 @@ sub _wEnterValue {
 
     # Create 1st label
     $w{window}{gui}{lblup} = Gtk3::Label->new();
-    $w{window}{gui}{hbox}->pack_start($w{window}{gui}{lblup}, 1, 1, 5);
-    $w{window}{gui}{lblup}->set_markup($lblup);
+    $w{window}{gui}{hbox}->pack_start($w{window}{gui}{lblup}, 0, 0, 0);
+    $w{window}{gui}{lblup}->set_markup($lblup // '');
 
     # Create 2nd label
     $w{window}{gui}{lbldwn} = Gtk3::Label->new();
-    $w{window}{data}->get_content_area->pack_start($w{window}{gui}{lbldwn}, 1, 1, 5);
-    $w{window}{gui}{lbldwn}->set_text($lbldown // '');
+    $w{window}{gui}{vbox}->pack_start($w{window}{gui}{lbldwn}, 0, 0, 5);
+    $w{window}{gui}{lbldwn}->set_markup($lbldown // '');
 
     if (@list) {
         # Create combobox widget
         $w{window}{gui}{comboList} = Gtk3::ComboBoxText->new();
-        $w{window}{data}->get_content_area->pack_start($w{window}{gui}{comboList}, 0, 1, 0);
+        $w{window}{gui}{vbox}->pack_start($w{window}{gui}{comboList}, 0, 1, 5);
         $w{window}{gui}{comboList}->set_property('can_focus', 0);
         foreach my $text (@list) {
             $w{window}{gui}{comboList}->append_text($text)
@@ -1527,14 +1542,19 @@ sub _wEnterValue {
     } else {
         # Create the entry widget
         $w{window}{gui}{entry} = Gtk3::Entry->new();
-        $w{window}{data}->get_content_area->pack_start($w{window}{gui}{entry}, 0, 1, 5);
+        $entry = $w{window}{gui}{entry};
+        $w{window}{gui}{vbox}->pack_start($w{window}{gui}{entry}, 0, 1, 5);
         $w{window}{gui}{entry}->set_text($default);
+        $w{window}{gui}{entry}->set_width_chars(30);
         $w{window}{gui}{entry}->set_activates_default(1);
         $w{window}{gui}{entry}->set_visibility($visible);
+        $w{window}{gui}{entry}->grab_focus();
     }
 
     # Show the window (in a modal fashion)
-    $w{window}{data}->set_transient_for($parent);
+    if ($entry) {
+        $entry->grab_focus();
+    }
     $w{window}{data}->show_all();
     my $ok = $w{window}{data}->run();
     my $val = '';
@@ -1583,17 +1603,17 @@ sub _wAddRenameNode {
 
     # Create the dialog window,
     $w{window}{data} = Gtk3::Dialog->new_with_buttons(
-        "$APPNAME (v$APPVERSION) : Enter data",
-        undef,
+        "$APPNAME : Enter data",
+        $PACMain::FUNCS{_MAIN}{_GUI}{main},
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok' => 'ok'
     );
     # and setup some dialog properties.
+    $w{window}{data}->set_decorated(0);
+    $w{window}{data}->get_style_context()->add_class('w-renamenode');
     $w{window}{data}->set_default_response('ok');
-    $w{window}{data}->set_position('center');
     $w{window}{data}->set_icon_name('asbru-app-big');
-    $w{window}{data}->set_size_request(-1, -1);
     $w{window}{data}->set_resizable(0);
     $w{window}{data}->set_border_width(5);
 
@@ -1625,6 +1645,7 @@ sub _wAddRenameNode {
     $w{window}{gui}{entry1} = Gtk3::Entry->new();
     $w{window}{gui}{hbox1}->pack_start($w{window}{gui}{entry1}, 1, 1, 0);
     $w{window}{gui}{entry1}->set_text($name);
+    $w{window}{gui}{entry1}->set_width_chars(30);
     $w{window}{gui}{entry1}->set_activates_default(1);
     $w{window}{gui}{entry1}->signal_connect('changed', sub {
         $w{window}{gui}{entry2}->set_text($w{window}{gui}{entry1}->get_chars(0, -1) . ($uuid eq '__PAC__ROOT__' || ! $$cfg{defaults}{'append group name'} ? '' : ($parent_name eq '' ? '' :  " - $parent_name")));
@@ -1644,10 +1665,10 @@ sub _wAddRenameNode {
     $w{window}{gui}{entry2} = Gtk3::Entry->new();
     $w{window}{gui}{hbox2}->pack_start($w{window}{gui}{entry2}, 1, 1, 0);
     $w{window}{gui}{entry2}->set_text($title);
+    $w{window}{gui}{entry2}->set_width_chars(30);
     $w{window}{gui}{entry2}->set_activates_default(1);
 
     # Show the window (in a modal fashion)
-    $w{window}{data}->set_transient_for($PACMain::FUNCS{_MAIN}{_GUI}{main});
     $w{window}{data}->show_all();
     my $ok = $w{window}{data}->run();
 
@@ -1724,6 +1745,10 @@ sub _wPopUpMenu {
             my $sensitive = $$m{sensitive} // 1;
             my $tooltip = $$m{tooltip} // '';
 
+            if (!$$m{shortcut}) {
+                $$m{shortcut} = '';
+            }
+
             my $label_orig =  __text($label);
             $label =~ s/\//__backslash__/go;
             my $pre_path = $path;
@@ -1790,8 +1815,9 @@ sub _wMessage {
     my $msg = shift;
     my $modal = shift // 1;
     my $selectable = shift // 0;
+    my $class =  shift // 'w-warning';
+    my $msg_type = 'GTK_MESSAGE_WARNING';
 
-    # Why no Gtk3::MessageDialog->new_with_markup() available??
     if (defined $window && ref $window ne 'Gtk3::Window') {
         print STDERR "WARN: Wrong parent parameter received _wMessage ",ref $window,"\n";
         undef $window;
@@ -1799,18 +1825,22 @@ sub _wMessage {
     if (!$window) {
         $window = $PACMain::FUNCS{_MAIN}{_GUI}{main};
     }
+    if ($msg =~ /error/i) {
+        $msg_type = 'GTK_MESSAGE_ERROR';
+        $class = 'w-error';
+    }
     my $windowConfirm = Gtk3::MessageDialog->new(
         $window,
         'GTK_DIALOG_DESTROY_WITH_PARENT',
-        'GTK_MESSAGE_INFO',
+        $msg_type,
         'none',
         ''
     );
-
+    $windowConfirm->set_decorated(0);
+    $windowConfirm->get_style_context()->add_class($class);
     $windowConfirm->set_markup($msg);
     $windowConfirm->set_icon_name('asbru-app-big');
-    $windowConfirm->set_title("$APPNAME (v$APPVERSION) : Message");
-    $windowConfirm->set_transient_for($window);
+    $windowConfirm->set_title("$APPNAME : Message");
 
     # The message can be selected by user (eg for copy/paste)
     if ($selectable) {
@@ -1906,6 +1936,9 @@ sub _wConfirm {
     my $msg = shift;
     my $default = shift // 'no';
 
+    if (!$window) {
+        $window = $PACMain::FUNCS{_MAIN}{_GUI}{main};
+    }
     # Why no Gtk3::MessageDialog->new_with_markup() available??
     if (defined $window && ref $window ne 'Gtk3::Window') {
         print STDERR "WARN: Wrong parent parameter received _wMessage ",ref $window,"\n";
@@ -1921,11 +1954,12 @@ sub _wConfirm {
         'none',
         ''
     );
+    $windowConfirm->set_decorated(0);
+    $windowConfirm->get_style_context()->add_class('w-confirm');
     $windowConfirm->set_markup($msg);
     $windowConfirm->add_buttons('gtk-cancel'=> 'no', 'gtk-ok' => 'yes');
     $windowConfirm->set_icon_name('asbru-app-big');
-    $windowConfirm->set_title("Confirm action : $APPNAME (v$APPVERSION)");
-    $windowConfirm->set_transient_for($window);
+    $windowConfirm->set_title("Confirm action : $APPNAME");
     $windowConfirm->set_default_response($default);
 
     $windowConfirm->show_all();
@@ -1940,6 +1974,9 @@ sub _wYesNoCancel {
     my $msg = shift;
 
     # Why no Gtk3::MessageDialog->new_with_markup() available??
+    if (!$window) {
+        $window = $PACMain::FUNCS{_MAIN}{_GUI}{main};
+    }
     my $windowConfirm = Gtk3::MessageDialog->new(
         $window,
         'GTK_DIALOG_DESTROY_WITH_PARENT',
@@ -1947,14 +1984,12 @@ sub _wYesNoCancel {
         'none',
         ''
     );
-    if (!$window) {
-        $window = $PACMain::FUNCS{_MAIN}{_GUI}{main};
-    }
+    $windowConfirm->set_decorated(0);
+    $windowConfirm->get_style_context()->add_class('w-confirm');
     $windowConfirm->set_markup($msg);
     $windowConfirm->add_buttons('gtk-cancel'=> 'cancel','gtk-no'=> 'no','gtk-yes' => 'yes');
     $windowConfirm->set_icon_name('asbru-app-big');
-    $windowConfirm->set_title("Confirm action : $APPNAME (v$APPVERSION)");
-    $windowConfirm->set_transient_for($window);
+    $windowConfirm->set_title("Confirm action : $APPNAME");
 
     $windowConfirm->show_all();
     my $close = $windowConfirm->run();
@@ -2015,6 +2050,7 @@ sub _cfgSanityCheck {
     $$cfg{'defaults'}{'show screenshots'} //= 1;
     $$cfg{'defaults'}{'back color'} //= '#000000000000';
     $$cfg{'defaults'}{'close terminal on disconnect'} //= '';
+    $$cfg{'defaults'}{'max retry on disconnect'} //= 50;
     $$cfg{'defaults'}{'close to tray'} //= 0;
     $$cfg{'defaults'}{'color black'} //= '#000000000000';
     $$cfg{'defaults'}{'color blue'} //=  '#34346565a4a4';
@@ -2032,9 +2068,9 @@ sub _cfgSanityCheck {
     $$cfg{'defaults'}{'color red'} //=  '#cccc00000000';
     $$cfg{'defaults'}{'color white'} //=  '#d3d3d7d7cfcf';
     $$cfg{'defaults'}{'color yellow'} //=  '#c4c4a0a00000';
-    $$cfg{'defaults'}{'command prompt'} //= '[#%\$>]|\:\/\s*$';
+    $$cfg{'defaults'}{'command prompt'} //= '[#%\$>~→]|\:\/\s*$';
     $$cfg{'defaults'}{'username prompt'} //= '([lL]ogin|[uU]suario|([uU]ser-?)*[nN]ame.*|[uU]ser)\s*:\s*$';
-    $$cfg{'defaults'}{'password prompt'} //= '([pP]ass|[pP]ass[wW]or[dt](\s+for\s+|\w+@\w+)*|[cC]ontrase.a|Enter passphrase for key \'.+\')\s*:\s*$';
+    $$cfg{'defaults'}{'password prompt'} //= '([pP]ass|[pP]ass[wW]or[dt](\s+for\s+|\w+@[\w\-\.]+)*|[cC]ontrase.a|Enter passphrase for key \'.+\')\s*:\s*$';
     $$cfg{'defaults'}{'hostkey changed prompt'} //= '^.+ontinue connecting \(([^/]+)\/([^/]+)(?:[^)]+)?\)\?\s*$';
     $$cfg{'defaults'}{'press any key prompt'} //= '.*(any key to continue|tecla para continuar).*';
     $$cfg{'defaults'}{'remote host changed prompt'} //= '.*ffending .*key in (.+?)\:(\d+).*';
@@ -2048,8 +2084,6 @@ sub _cfgSanityCheck {
     $$cfg{'defaults'}{'auto hide button bar'}     //= 0;
     $$cfg{'defaults'}{'hide on connect'} //= 0;
     $$cfg{'defaults'}{'force split tabs to 50%'} //= 0;
-    $$cfg{'defaults'}{'ping port before connect'} //= 0;
-    $$cfg{'defaults'}{'ping port timeout'} //= 1;
     $$cfg{'defaults'}{'open connections in tabs'} //= 1;
     $$cfg{'defaults'}{'proxy ip'} //= '';
     $$cfg{'defaults'}{'proxy pass'} //= '';
@@ -2118,10 +2152,6 @@ sub _cfgSanityCheck {
         $$cfg{'defaults'}{'gui password'} //= '';
     }
     $$cfg{'defaults'}{'use gui password tray'} //= 0;
-    $$cfg{'defaults'}{'disable CTRL key bindings'} //= 0;
-    $$cfg{'defaults'}{'disable SHIFT key bindings'} //= 0;
-    $$cfg{'defaults'}{'disable ALT key bindings'} //= 0;
-    $$cfg{'defaults'}{'prevent F11'} //= 0;
     $$cfg{'defaults'}{'autostart shell upon start'} //= 0;
     $$cfg{'defaults'}{'tree on right side'} //= 0;
     $$cfg{'defaults'}{'prevent mouse over show tree'} //= 1;
@@ -2132,11 +2162,9 @@ sub _cfgSanityCheck {
     $$cfg{'defaults'}{'info font'} //= 'monospace';
     $$cfg{'defaults'}{'use login shell to connect'} //= 0;
     $$cfg{'defaults'}{'audible bell'} //= 0;
-    $$cfg{'defaults'}{'ctrl tab'} //= 'last';
     $$cfg{'defaults'}{'append group name'} //= 1;
     $$cfg{'defaults'}{'when no more tabs'} //= 0;
     $$cfg{'defaults'}{'selection to clipboard'} //= 1;
-    $$cfg{'defaults'}{'how to switch tabs'} //= 0;
     $$cfg{'defaults'}{'remove control chars'} //= 0;
     $$cfg{'defaults'}{'allow more instances'} //= 0;
     $$cfg{'defaults'}{'show favourites in unity'} //= 0;
@@ -2209,14 +2237,14 @@ sub _cfgSanityCheck {
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'back color'} //= '#000000000000'; # Black
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'command prompt'} //= '(\]\#|\$\s)+';
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'username prompt'} //= '([lL]ogin|[uU]suario|[uU]ser-?[nN]ame|[uU]ser):\s*$';
-    $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'password prompt'} //= '([pP]ass|[pP]ass[wW]or[dt](\s+for\s+|\w+@\w+)*|[cC]ontrase.a|Enter passphrase for key \'.+\')\s*:\s*$';
+    $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'password prompt'} //= '([pP]ass|[pP]ass[wW]or[dt](\s+for\s+|\w+@[\w\-\.]+)*|[cC]ontrase.a|Enter passphrase for key \'.+\')\s*:\s*$';
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'cursor shape'} //= 'block';
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'open in tab'} //= 1;
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal font'} //= 'Monospace 9';
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal backspace'} //= 'auto';
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal select words'} //= '-.:_/';
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal character encoding'} //= 'UTF-8';
-    $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal scrollback lines'} //= 5000;
+    $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal scrollback lines'} //= -2;
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal transparency'} //= 0;
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal window hsize'} //= 800;
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal window vsize'} //= 600;
@@ -2226,9 +2254,6 @@ sub _cfgSanityCheck {
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'timeout command'} //= 40;
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'timeout connect'} //= 40;
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'use personal settings'} //= 0;
-    $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'disable CTRL key bindings'} //= 0;
-    $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'disable ALT key bindings'} //= 0;
-    $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'disable SHIFT key bindings'} //= 0;
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'audible bell'} //= 0;
 
     foreach my $uuid (keys %{$$cfg{'environments'}}) {
@@ -2505,16 +2530,16 @@ sub _cfgSanityCheck {
             $$cfg{'environments'}{$uuid}{'terminal options'}{'use tab back color'} = 0;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'tab back color'} = '#000000000000'; # Black
             $$cfg{'environments'}{$uuid}{'terminal options'}{'back color'} = '#000000000000'; # Black
-            $$cfg{'environments'}{$uuid}{'terminal options'}{'command prompt'} = '[#%\$>]|\:\/\s*$';
+            $$cfg{'environments'}{$uuid}{'terminal options'}{'command prompt'} = '[#%\$>~→]|\:\/\s*$';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'username prompt'} = '([lL]ogin|[uU]suario|[uU]ser-?[nN]ame|[uU]ser):\s*$';
-            $$cfg{'environments'}{$uuid}{'terminal options'}{'password prompt'} = '([pP]ass|[pP]ass[wW]or[dt](\s+for\s+|\w+@\w+)*|[cC]ontrase.a|Enter passphrase for key \'.+\')\s*:\s*$';
+            $$cfg{'environments'}{$uuid}{'terminal options'}{'password prompt'} = '([pP]ass|[pP]ass[wW]or[dt](\s+for\s+|\w+@[\w\-\.]+)*|[cC]ontrase.a|Enter passphrase for key \'.+\')\s*:\s*$';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'cursor shape'}  = 'block';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'open in tab'} = 1;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal font'} = 'Monospace 9';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal select words'} = '-.:_/';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal backspace'} = 'auto';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal character encoding'} = 'UTF-8';
-            $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal scrollback lines'} = 5000;
+            $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal scrollback lines'} = -2;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal transparency'} = 0;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal window hsize'} = 800;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal window vsize'} = 600;
@@ -2524,23 +2549,20 @@ sub _cfgSanityCheck {
             $$cfg{'environments'}{$uuid}{'terminal options'}{'timeout command'} = 40;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'timeout connect'} = 40;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'use personal settings'} = 0;
-            $$cfg{'environments'}{$uuid}{'terminal options'}{'disable CTRL key bindings'} = 0;
-            $$cfg{'environments'}{$uuid}{'terminal options'}{'disable ALT key bindings'} = 0;
-            $$cfg{'environments'}{$uuid}{'terminal options'}{'disable SHIFT key bindings'} = 0;
         } else {
             $$cfg{'environments'}{$uuid}{'terminal options'}{'use tab back color'} //= 0;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'tab back color'} //= '#000000000000'; # Black
             $$cfg{'environments'}{$uuid}{'terminal options'}{'back color'} //= '#000000000000'; # Black
             $$cfg{'environments'}{$uuid}{'terminal options'}{'command prompt'} //= '(\]\#|\$\s)+';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'username prompt'} //= '([lL]ogin|[uU]suario|[uU]ser-?[nN]ame|[uU]ser):\s*$';
-            $$cfg{'environments'}{$uuid}{'terminal options'}{'password prompt'} //= '([pP]ass|[pP]ass[wW]or[dt](\s+for\s+|\w+@\w+)*|[cC]ontrase.a|Enter passphrase for key \'.+\')\s*:\s*$';
+            $$cfg{'environments'}{$uuid}{'terminal options'}{'password prompt'} //= '([pP]ass|[pP]ass[wW]or[dt](\s+for\s+|\w+@[\w\-\.]+)*|[cC]ontrase.a|Enter passphrase for key \'.+\')\s*:\s*$';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'cursor shape'} //= 'block';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'open in tab'} //= 1;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal font'} //= 'Monospace 9';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal select words'} //= '-.:_/';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal backspace'} //= 'auto';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal character encoding'} //= 'UTF-8';
-            $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal scrollback lines'} //= 5000;
+            $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal scrollback lines'} //= -2;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal transparency'} //= 0;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal window hsize'} //= 800;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal window vsize'} //= 600;
@@ -2550,14 +2572,33 @@ sub _cfgSanityCheck {
             $$cfg{'environments'}{$uuid}{'terminal options'}{'timeout command'} //= 40;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'timeout connect'} //= 40;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'use personal settings'} //= 0;
-            $$cfg{'environments'}{$uuid}{'terminal options'}{'disable CTRL key bindings'} //= 0;
-            $$cfg{'environments'}{$uuid}{'terminal options'}{'disable ALT key bindings'} //= 0;
-            $$cfg{'environments'}{$uuid}{'terminal options'}{'disable SHIFT key bindings'} //= 0;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'audible bell'} //= 0;
         }
     }
 
     return 1;
+}
+
+sub _cfgGetTmpSessions {
+    my $cfg = shift;
+    my %tmp;
+
+    foreach my $uuid (keys %{$$cfg{'environments'}}) {
+        if ($uuid =~ /^(HASH|_tmp_|pacshell_PID)/go) {
+            $tmp{$uuid} = $$cfg{'environments'}{$uuid};
+        }
+    }
+
+    return %tmp;
+}
+
+sub _cfgAddSessions {
+    my $cfg = shift;
+    my $tmp = shift;
+
+    foreach my $uuid (keys %{$tmp}) {
+        $$cfg{'environments'}{$uuid} = $tmp->{$uuid};
+    }
 }
 
 sub _updateSSHToIPv6 {
@@ -2825,7 +2866,15 @@ sub _subst {
     my %out;
     my $pos = -1;
     my @LOCAL_VARS = ('UUID','TIMESTAMP','DATE_Y','DATE_M','DATE_D','TIME_H','TIME_M','TIME_S','NAME','TITLE','IP','PORT','USER','PASS');
+    my $parent;
 
+    if ($uuid) {
+        if (defined $PACMain::RUNNING{$uuid}{_PARENTWINDOW}) {
+            $parent = $PACMain::RUNNING{$uuid}{_PARENTWINDOW};
+        }
+    } else {
+        $parent = $PACMain::FUNCS{_MAIN}{_GUI}{main};
+    }
     if (defined $uuid) {
         if (!defined $$CFG{'environments'}{$uuid}) {
             return $string;
@@ -3192,7 +3241,7 @@ sub _wakeOnLan {
     }
 
     if (! send(S, $MAGIC, $SIZE, $paddr)) {
-        _wMessage(undef, "ERROR: Sending magic packet to $ip (MAC: $mac) failed:\n$!");
+        _wMessage($PACMain::FUNCS{_MAIN}{_GUI}{main}, "ERROR: Sending magic packet to $ip (MAC: $mac) failed:\n$!");
         return $mac;
     } else {
         send(S, $MAGIC, $SIZE, $paddr);
@@ -3209,7 +3258,7 @@ sub _wakeOnLan {
             send(S, $MAGIC, $SIZE, sockaddr_in(9, $ipaddr));
         }
 
-        _wMessage(undef, "Wake On Lan 'Magic Packet'\nCORRECTLY sent to " . ($broadcast ? 'BROADCAST' : "IP: $ip") . "\n(MAC: $mac)");
+        _wMessage($PACMain::FUNCS{_MAIN}{_GUI}{main}, "Wake On Lan 'Magic Packet'\nCORRECTLY sent to " . ($broadcast ? 'BROADCAST' : "IP: $ip") . "\n(MAC: $mac)");
     }
 
     return $mac;
@@ -3296,11 +3345,12 @@ sub _replaceBadChars {
 sub _removeEscapeSeqs {
     my $string = shift // '';
 
+    $string =~ s/\x07/\x07\n/g;
     $string =~ s/\x1B[=>]//g;
     $string =~ s/\e\[[0-9;]*[a-zA-Z]%?//g;
     $string =~ s/\e\[[0-9;]*m(?:\e\[K)?//g;
-    $string =~ s/\x1B.+?\x07//g;
-    $string =~ s/(\x1B|\x08|\x07)(\[w|=)?//g;
+    $string =~ s/\x1B\]1.+?\x07\n?//g;
+    $string =~ s/(\x1B|\x08|\x07)(\[w|=|\(B)?//g;
     $string =~ s/\[\?\d+\w{1,2}//g;
     $string =~ s/\]\d;//g;
 
@@ -3652,30 +3702,27 @@ sub _makeDesktopFile {
     }
 
     my $d = "[Desktop Entry]\n";
-    $d .= "Name=SSH Connection Manager\n";
+    $d .= "Name=Ásbrú Connection Manager\n";
     $d .= "Comment=A user interface that helps organizing remote terminal sessions and automating repetitive tasks\n";
     $d .= "Terminal=false\n";
     $d .= "Icon=pac\n";
     $d .= "Type=Application\n";
-    $d .= "Exec=/usr/bin/asbru-cm\n";
+    $d .= "Exec=env GDK_BACKEND=x11 /usr/bin/asbru-cm\n";
     $d .= "StartupNotify=true\n";
-    $d .= "Name[en_US]=SSH Connection Manager\n";
-    $d .= "Name[ko]=SSH Connection Manager\n";    
+    $d .= "Name[en_US]=Ásbrú Connection Manager\n";
     $d .= "Comment[en_US]=A user interface that helps organizing remote terminal sessions and automating repetitive tasks\n";
-    $d .= "Comment[ko]=원격 접속을 위한 SSH 접속 프로그램\n";    
-    $d .= "Keywords=ssh;terminal,remote,시큐어쉘,telnel,scp,sftp,connection,emulator,putty,term\n";            
     $d .= "Categories=Applications;Network;\n";
     $d .= "X-GNOME-Autostart-enabled=false\n";
     my $dal = 'Actions=Shell;Quick;Preferences;';
     my $da = "\n[Desktop Action Shell]\n";
     $da .= "Name=<Start local shell>\n";
-    $da .= "Exec=asbru-cm --start-shell\n";
+    $da .= "Exec=env GDK_BACKEND=x11 /usr/bin/asbru-cm --start-shell\n";
     $da .= "\n[Desktop Action Quick]\n";
     $da .= "Name=<Quick connect...>\n";
-    $da .= "Exec=asbru-cm --quick-conn\n";
+    $da .= "Exec=env GDK_BACKEND=x11 /usr/bin/asbru-cm --quick-conn\n";
     $da .= "\n[Desktop Action Preferences]\n";
     $da .= "Name=<Open Preferences...>\n";
-    $da .= "Exec=asbru-cm --preferences\n";
+    $da .= "Exec=env GDK_BACKEND=x11 /usr/bin/asbru-cm --preferences\n";
 #    my $action = 0;
 #    foreach my $uuid (keys %{$$cfg{environments}}) {
 #        if (($uuid eq '__PAC__ROOT__') || (! $$cfg{'environments'}{$uuid}{'favourite'})) {
@@ -3843,7 +3890,7 @@ sub _doShellEscape {
     my $str = shift;
 
     $str =~ s/([\$\\`"])/\\$1/g;
-    
+
     return $str;
 }
 
@@ -3948,7 +3995,13 @@ Support function to build and xml file to build the popup menu
 
 Support function to calculate the location of the popup menu
 
-=head2 sub _wMessage
+=head2 sub _wMessage(window,msg,modal,selectable,class)
+
+    window      parent window to be transient for
+    msg         message to display
+    modal       0 no, 1 yes (defaul yes)
+    selectable  should message be selectable (default no)
+    class       css class : w-warning, w-info, w-error (default w-warning)
 
 Create a modal message to the user
 
@@ -3970,7 +4023,15 @@ Sets the Application password
 
 =head2 sub _cfgSanityCheck
 
-Configuration Checks
+Sanitize the configuration and delete temporary sessions that should not be persisted
+
+=head2 sub _cfgGetTmpSessions
+
+Extract the temporary sessions from the configuration.  Those sessions will be deleted by _cfgSanityCheck
+
+=head2 sub _cfgAddSessions
+
+Restore a list of sessions to the configuration.
 
 =head2 sub _updateSSHToIPv6
 

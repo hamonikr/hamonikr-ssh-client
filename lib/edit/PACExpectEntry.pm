@@ -3,7 +3,7 @@ package PACExpectEntry;
 ###############################################################################
 # This file is part of Ásbrú Connection Manager
 #
-# Copyright (C) 2017-2020 Ásbrú Connection Manager team (https://asbru-cm.net)
+# Copyright (C) 2017-2021 Ásbrú Connection Manager team (https://asbru-cm.net)
 # Copyright (C) 2010-2016 David Torrejon Vaquerizas
 #
 # Ásbrú Connection Manager is free software: you can redistribute it and/or
@@ -146,15 +146,25 @@ sub _buildExpectGUI {
 
     # Build a vbox for:buttons, separator and expect widgets
     $w{vbox} = Gtk3::VBox->new(0, 0);
+    $w{hbox} = Gtk3::HBox->new(1, 0);
 
     # Build a hbuttonbox for widgets actions (add, etc.)
     $w{bbox} = Gtk3::HButtonBox->new();
-    $w{vbox}->pack_start($w{bbox}, 0, 1, 0);
+    $w{vbox}->pack_start($w{hbox}, 0, 1, 0);
+    $w{hbox}->pack_start($w{bbox}, 0, 1, 0);
     $w{bbox}->set_layout('GTK_BUTTONBOX_START');
 
     # Build 'add' button
     $w{btnadd} = Gtk3::Button->new_from_stock('gtk-add');
     $w{bbox}->add($w{btnadd});
+
+    $w{help} = Gtk3::LinkButton->new('https://docs.asbru-cm.net/Manual/Connections/SSH/#expect');
+    $w{help}->set_halign('GTK_ALIGN_END');
+    $w{help}->set_label('');
+    $w{help}->set_tooltip_text('Open Online Help');
+    $w{help}->set_always_show_image(1);
+    $w{help}->set_image(Gtk3::Image->new_from_stock('asbru-help', 'button'));
+    $w{hbox}->pack_start($w{help}, 0, 1, 0);
 
     # Build a separator
     $w{sep} = Gtk3::HSeparator->new();
@@ -168,7 +178,7 @@ sub _buildExpectGUI {
 
     $w{vp} = Gtk3::Viewport->new();
     $w{sw}->add($w{vp});
-    $w{vp}->set_property('border-width', 5);
+    #$w{vp}->set_property('border-width', 0);
     $w{vp}->set_shadow_type('none');
 
     # Build and add the vbox that will contain the expect widgets
@@ -224,10 +234,13 @@ sub _buildExpect {
     # Make an container frame
     $w{frame} = Gtk3::Frame->new;
     $w{frame}->set_label_widget($w{active});
+    $w{frame}->set_shadow_type('GTK_SHADOW_NONE');
 
     # Build an HBox
+    $w{vbox} = Gtk3::VBox->new(0, 5);
     $w{hbox1} = Gtk3::HBox->new(0, 0);
-    $w{frame}->add($w{hbox1});
+    $w{frame}->add($w{vbox});
+    $w{vbox}->pack_start($w{hbox1}, 0, 1, 0);
 
     # Build a vbox for event_boxes 1 & 2
     $w{vbox1} = Gtk3::VBox->new(0, 0);
@@ -244,7 +257,7 @@ sub _buildExpect {
     $w{ebdown}->add(Gtk3::Image->new_from_stock('gtk-go-down', 'small-toolbar') );
 
     # Build a vbox for expect and send entries
-    $w{vbox2} = Gtk3::VBox->new(0, 0);
+    $w{vbox2} = Gtk3::VBox->new(0, 3);
     $w{hbox1}->pack_start($w{vbox2}, 1, 1, 0);
     $w{vbox2}->set_sensitive($active);
 
@@ -356,7 +369,10 @@ sub _buildExpect {
 
     # Build delete button
     $w{btn} = Gtk3::Button->new_from_stock('gtk-delete');
-    $w{hbox1}->pack_start($w{btn}, 0, 1, 0);
+    $w{btn}->set_valign('GTK_ALIGN_START');
+    $w{hbox1}->pack_start($w{btn}, 0, 0, 0);
+
+    $w{vbox}->pack_start(Gtk3::HSeparator->new(), 1, 1, 0);
 
     # Add built control to main container
     $$self{frame}{vbexpect}->pack_start($w{frame}, 0, 1, 0);

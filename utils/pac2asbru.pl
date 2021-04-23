@@ -163,7 +163,7 @@ sub migrate {
     # Pango markup is OK
     sub setMessage {
         my $dir = shift;
-        my $msg = qq”Before you can use this version, your configuration needs to be migrated.
+        my $msg = qq”Before you can use this version of Ásbrú Connection Manager, your configuration needs to be migrated.
 
         A backup copy of your original configuration will be created at : <b>$dir</b>
 
