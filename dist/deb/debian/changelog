@@ -1,4 +1,10 @@
-asbru-cm (6.3.2-1) hanla; urgency=medium
+asbru-cm (6.3.2-1hamonikr2) hanla; urgency=medium
+
+  * change logo image
+
+ -- HamoniKR <pkg@hamonikr.org>  Fri, 23 Apr 2021 15:03:46 +0900
+
+asbru-cm (6.3.2-1hamonikr1) hanla; urgency=medium
 
   * Rebuild for HamoniKR 5.0 hanla
   * Recent Ver. Release

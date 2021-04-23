@@ -12,13 +12,13 @@
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    id="svg11300"
    sodipodi:docname="asbru-logo.svg"
-   inkscape:export-filename="/home/gaetan/Downloads/asbru-logo-400.png"
+   inkscape:export-filename="/home/hamonikr/hamonikr-4.0-work/17-ssh-client/hamonikr-ssh-client/res/asbru-logo-400.png"
    viewBox="0 0 48 48"
    sodipodi:version="0.32"
    inkscape:export-xdpi="750"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
    inkscape:export-ydpi="750"
-   inkscape:version="0.91 r13725"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
    version="1.1">
   <defs
      id="defs3">
@@ -131,7 +131,7 @@
      inkscape:showpageshadow="false"
      inkscape:grid-bbox="true"
      inkscape:zoom="8"
-     inkscape:cx="36.53125"
+     inkscape:cx="11.34375"
      inkscape:window-height="954"
      showgrid="false"
      borderopacity="0.25490196"
@@ -300,23 +300,21 @@
      style="display:inline;opacity:0.97000002">
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:80px;line-height:125%;font-family:FreeSans;-inkscape-font-specification:'FreeSans, Normal';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="13"
-       y="43.875"
-       id="text86685"
-       sodipodi:linespacing="125%"><tspan
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:FreeSans;-inkscape-font-specification:'FreeSans, Normal';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="10.25"
+       y="43.5"
+       id="text86685"><tspan
          sodipodi:role="line"
          id="tspan86687"
-         x="13"
-         y="43.875"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10px;line-height:125%;font-family:FreeSans;-inkscape-font-specification:'FreeSans, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start">Ásbrú</tspan></text>
+         x="10.25"
+         y="43.5"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.33333349px;line-height:125%;font-family:FreeSans;-inkscape-font-specification:'FreeSans, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start">SSH Terminal</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:80px;line-height:125%;font-family:FreeSans;-inkscape-font-specification:'FreeSans, Normal';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;opacity:0.97000002;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:0%;font-family:FreeSans;-inkscape-font-specification:'FreeSans, Normal';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;opacity:0.97000002;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="15.17086"
        y="46.884998"
-       id="text86685-6"
-       sodipodi:linespacing="125%"><tspan
+       id="text86685-6"><tspan
          sodipodi:role="line"
          id="tspan86687-0"
          x="15.17086"
