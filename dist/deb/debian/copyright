@@ -3,7 +3,8 @@ Upstream-Name: asbru-cm
 Source: https://www.asbru-cm.net
 
 Files: *
-Copyright: 2017 Ásbrú Connection Manager team <contact@asbru-cm.net>
+Copyright: 2021 HamoniKR <pkg@hamonikr.org>
+           2017 Ásbrú Connection Manager team <contact@asbru-cm.net>
            2010-2016 David Torrejón Vaquerizas
 License: GPL-3+
 
