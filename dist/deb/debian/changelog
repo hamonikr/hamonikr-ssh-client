@@ -1,3 +1,9 @@
+asbru-cm (6.3.2-1hamonikr3) hanla; urgency=medium
+
+  * Add depends cpanminus libglib2.0-dev
+
+ -- HamoniKR <pkg@hamonikr.org>  Mon, 18 Oct 2021 12:53:01 +0900
+
 asbru-cm (6.3.2-1hamonikr2) hanla; urgency=medium
 
   * change logo image
