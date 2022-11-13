@@ -1,7 +1,11 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
 Format: 1.8
 Date: Sat, 10 Oct 2020 15:00:20 +0900
 Source: asbru-cm
 Binary: asbru-cm
+Built-For-Profiles: noudeb
 Architecture: source all
 Version: 6.2.2-1hamonikr1
 Distribution: jin
@@ -15,20 +19,37 @@ Changes:
  .
    * rebuild for HamoniKR 4.0
 Checksums-Sha1:
- b217d40ff60f9a5566ce7ce13e47c85af8d11b47 971 asbru-cm_6.2.2-1hamonikr1.dsc
- 2b58a76ca631fdd99a84909a5617d36fbe739a3a 12641832 asbru-cm_6.2.2.orig.tar.xz
+ 13827ced631dd99c1a1ac634372b7bdb5a0061ae 1854 asbru-cm_6.2.2-1hamonikr1.dsc
+ 5aa1adb234216d6b9e48030ef4afbcd2022e4c75 25206284 asbru-cm_6.2.2.orig.tar.xz
  dd7428c34329485ef2a2e4755db561bf40ca9e6b 2520 asbru-cm_6.2.2-1hamonikr1.debian.tar.xz
- 3e31b30494f232d7a26df26c87c6faf770892adb 415240 asbru-cm_6.2.2-1hamonikr1_all.deb
- 834790dea72ec6caac477a45d20ec5193b6e9a4e 13371 asbru-cm_6.2.2-1hamonikr1_amd64.buildinfo
+ fa169532b2f97ddac1843156a017b614e819ebf6 420180 asbru-cm_6.2.2-1hamonikr1_all.deb
+ a32e4a83ed9640051a1dd44761dd046b4ad8feab 7066 asbru-cm_6.2.2-1hamonikr1_amd64.buildinfo
 Checksums-Sha256:
- 3fcdaf1b8cbb0073291714cd763f12b21e2cff6583d223953fd5527f9430eca4 971 asbru-cm_6.2.2-1hamonikr1.dsc
- 961a79ac87e29dea75d7fe2fe250c938afd65c3c7a6948059973e8bb6567603d 12641832 asbru-cm_6.2.2.orig.tar.xz
+ 5ce54eb9b69c857c17d4071007415774104a5bcc0d7ea25a68e12e1d4ddcd2c2 1854 asbru-cm_6.2.2-1hamonikr1.dsc
+ 19369945fa1f69394203012e8d020a3615ddd4289a13a23a01cffd7b8462b8d3 25206284 asbru-cm_6.2.2.orig.tar.xz
  db66fe01e16feccc06eb6d23c8027a1caab7c5687d7e1813e051c786085c6e6c 2520 asbru-cm_6.2.2-1hamonikr1.debian.tar.xz
- 5e7903ac840f772fe2a099a59f5df2a9e2c6d6dedb8b04234c64195657291714 415240 asbru-cm_6.2.2-1hamonikr1_all.deb
- 3ea91b32885e03d7cc4c618b93747c9f4908a15e0ab05e0ba3b1fb1e6b14bf7d 13371 asbru-cm_6.2.2-1hamonikr1_amd64.buildinfo
+ d7d3fe50d8aecd00a6f928a870cbff8bef463311fb35ecf3c75251873772f5c4 420180 asbru-cm_6.2.2-1hamonikr1_all.deb
+ c5a9ba723149dd26c5c991445d1872039f7867f64c1817f639789b6510cd1561 7066 asbru-cm_6.2.2-1hamonikr1_amd64.buildinfo
 Files:
- 90d9fef16c9b430e5af85542d777a54c 971 networking optional asbru-cm_6.2.2-1hamonikr1.dsc
- ff5eab70aa2cffc690907b0a7656ef0a 12641832 networking optional asbru-cm_6.2.2.orig.tar.xz
+ dbd10bf929333740bb227b8d8e4f90f8 1854 networking optional asbru-cm_6.2.2-1hamonikr1.dsc
+ 717d26e6602007d0c0c4f6d82e666e43 25206284 networking optional asbru-cm_6.2.2.orig.tar.xz
  90be2a93f5ef2f830ad8a2d0068c388b 2520 networking optional asbru-cm_6.2.2-1hamonikr1.debian.tar.xz
- 4fc039d2aa37272e97318466cfda30ee 415240 networking optional asbru-cm_6.2.2-1hamonikr1_all.deb
- 644891ace77d58bdf577c7466da7d5f6 13371 networking optional asbru-cm_6.2.2-1hamonikr1_amd64.buildinfo
+ 7cc023c6da031c91b4f7011d3ac18d97 420180 networking optional asbru-cm_6.2.2-1hamonikr1_all.deb
+ 752d07b7fb8460d090bf74e5865f6075 7066 networking optional asbru-cm_6.2.2-1hamonikr1_amd64.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEEnvvSjKPjrOUQxZHwn6KYoeQmZbgFAmNwnhEACgkQn6KYoeQm
+ZbgHrBAAvOFlJaMnBGAsSVsXWVIjNWP5IaHQVO/NkWEjsPcQ2DCihWurm3Kmb9G9
+a0sP9beB65jtCy8Cri7DPOfAKlqaJ7hQ0mgBvy3jvTRF8iQTrTy5JVD5ZNe9XZ59
+0K8Ezb3qJ5CZsGo5zq1pQdjHaYMwP3QCoeGRzGp1jdLQgx5tEm2E7e7xBNMRRIey
+qRkt6suo0rnIHRMV1T7OQHanpnINFHJWSg/uAHTivE+zR+IWp0gR4Y/jQq6+BxL5
+pVew9G1Rz48O6yA0Z1U1aqMr6bG/WbW65TFa4FphetOqBskv7jiA1CQBSPJI1WQz
+7MzzIgcIpCkNGgXHF4rLPpurFU64eh5p8wWyhlU8c6Eo2cN118NTNC8EdVK0p0+M
+FsMZlpUvllqrahx3XgRUsIGou945cynOAQTIuhGYvv57pYrlmpXuI5vz2YCV4ZCs
+w/52qxT07YBnw/ihYXjInttY/qI0YULpvYyVPC+uaYhAxsqhESci/Es1nc8iKYS0
+dHT0ul6O8Z7/EA3p5kLvaRJ3yXCxKLRdrnCT9V8zHoDrpsqjRZNF9XDZb16hPWuZ
+ADHj/CrEdgHjuqzxxl5vCPhzejvyNFppN/N7ImonsSMvBV3+YeCfyk22oL9MwN8j
+s8LwXoEa6DNbko7QGHJMxS5ljWI7Rkc6JsTTBXQ3A4efD3uiAfc=
+=Khja
+-----END PGP SIGNATURE-----
