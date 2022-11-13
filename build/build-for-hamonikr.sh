@@ -20,10 +20,9 @@ dpkg-buildpackage -T clean
 cd ..
 rm -rf release
 mkdir release
-mv *.{deb,tar.xz,dsc,build,changes,buildinfo} release/
+mv *.{deb,tar.xz,dsc,build,changes,buildinfo} ../
 rm -f asbru-cm_$VERSION.orig.tar.xz
 
-
-ls -lha ./release/
+# ls -lha ./release/
 
 echo "All done. Hopefully"                   
