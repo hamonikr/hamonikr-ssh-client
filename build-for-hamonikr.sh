@@ -26,3 +26,4 @@ rm -f asbru-cm_$VERSION.orig.tar.xz
 # ls -lha ./release/
 
 echo "All done. Hopefully"                   
+rm -rf build
