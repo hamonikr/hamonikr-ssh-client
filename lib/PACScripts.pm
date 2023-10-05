@@ -3,7 +3,7 @@ package PACScripts;
 ###############################################################################
 # This file is part of Ásbrú Connection Manager
 #
-# Copyright (C) 2017-2020 Ásbrú Connection Manager team (https://asbru-cm.net)
+# Copyright (C) 2017-2022 Ásbrú Connection Manager team (https://asbru-cm.net)
 # Copyright (C) 2010-2016 David Torrejon Vaquerizas
 #
 # Ásbrú Connection Manager is free software: you can redistribute it and/or
@@ -37,11 +37,10 @@ use Encode qw (encode);
 use File::Copy;
 use File::Basename;
 use Storable qw (dclone nstore_fd);
+use Config;
 
 eval {require Gtk3::SourceView2;};
 my $SOURCEVIEW = ! $@;
-
-my $PERL = `which perl 2>&1`;
 
 # GTK
 use Gtk3 '-init';
@@ -344,7 +343,7 @@ sub show {
     $self->_updateGUI;
 
     # Setup a timer to check syntax of selected script
-    (! defined $$self{_TIMER_CHECK} && $PERL) and $$self{_TIMER_CHECK} = Glib::Timeout->add_seconds(1, sub {
+    (! defined $$self{_TIMER_CHECK}) and $$self{_TIMER_CHECK} = Glib::Timeout->add_seconds(1, sub {
         return 1 unless $$self{_WINDOWSCRIPTS}{main}->get_property('has-toplevel-focus') && $$self{_SYNTAX_CHANGED};
 
         my $selection = $$self{_WINDOWSCRIPTS}{treeScripts}->get_selection;
@@ -363,7 +362,7 @@ sub show {
         my $tmpfile = $CFG_DIR . '/tmp/' . $name . '.check';
         $self->_saveFile($sel[0], $tmpfile);
 
-        my @lines = `perl -cw $tmpfile 2>&1`;
+        my @lines = `'$^X' -cw $tmpfile 2>&1`;
         my $err = $?;
         my $result = pop(@lines); chomp $result;
         $result =~ s/^\Q$tmpfile\E\s+(.+)$/$1/g;
@@ -1061,7 +1060,7 @@ All $CONNECTIONS{error|out1|out2} are resetted every time a SEND command is exec
         return 1 unless scalar @sel == 1;
 
         my $name = $model->get_value($model->get_iter($sel[0]), 1);
-        $self->_execScript($name);
+        $self->_execScript($name,$$self{_WINDOWSCRIPTS}{main});
 
         return 1;
     });
@@ -1383,6 +1382,7 @@ Feel free to send me any Ásbrú Script you may find useful to the community!";
 sub _execScript {
     my $self = shift;
     my $name = shift;
+    my $parentWindow = shift;
 
     my @uuid_tmps = @_;
 
@@ -1555,7 +1555,7 @@ sub _execScript {
                 $PAC{_msg_wid}->destroy;
                 delete $PAC{_msg_wid};
             }
-            $PAC{_msg_wid} = _wMessage($PACMain::FUNCS{_MAIN}{_GUI}{main}, __($msg), $modal);
+            $PAC{_msg_wid} = _wMessage($parentWindow, __($msg), $modal);
         } else {
             $PAC{_msg_wid}->destroy if defined $PAC{_msg_wid};
             undef $PAC{_msg_wid};
@@ -1566,7 +1566,7 @@ sub _execScript {
 
     defined &SESSION and undef &SESSION;
     if (! open(F,"<:utf8",$file)) {
-        _wMessage(undef, "Could not open Ásbrú Script file '$file' for reading: $!");
+        _wMessage($parentWindow, "Could not open Ásbrú Script file '$file' for reading: $!");
         return 1;
     }
     my @lines = <F>;
@@ -1576,7 +1576,7 @@ sub _execScript {
     no warnings ('redefine');
     eval $txt;
     use warnings;
-    if ($@) {_wMessage(undef, "Error parsing Ásbrú Script: $@"); $PAC{msg}(); return 0;}
+    if ($@) {_wMessage($parentWindow, "Error parsing Ásbrú Script: $@"); $PAC{msg}(); return 0;}
 
     # SESSION execution (local)
     if (scalar @uuid_tmps) {
@@ -1586,12 +1586,12 @@ sub _execScript {
         }
     } else {
         if (! defined &SESSION) {
-            _wMessage(undef, "Error executing Ásbrú Script:\nNo 'SESSION' function declaration found, and script not being executed directly from any Terminal!");
+            _wMessage($parentWindow, "Error executing Ásbrú Script:\nNo 'SESSION' function declaration found, and script not being executed directly from any Terminal!");
             $PAC{msg}();
             return 0;
         } else {
             eval {&SESSION;};
-            if ($@) {_wMessage(undef, "Error executing Ásbrú Script: $@"); $PAC{msg}(); return 0;}
+            if ($@) {_wMessage($parentWindow, "Error executing Ásbrú Script: $@"); $PAC{msg}(); return 0;}
         }
     }
 
@@ -1602,7 +1602,7 @@ sub _execScript {
     foreach my $tmp_uuid (keys %{$PAC{list}}) {
         next unless defined $PACMain::RUNNING{$tmp_uuid};
         if ($PACMain::RUNNING{$tmp_uuid}{terminal}{_SCRIPT_STATUS} ne 'STOP') {
-            _wMessage(undef, "ERROR: Can not start a new Ásbrú Script while another one is still running:\nTerminal '$PACMain::RUNNING{$tmp_uuid}{terminal}{_NAME}' is running '$PACMain::RUNNING{$tmp_uuid}{terminal}{_SCRIPT_NAME}'", 1) ;
+            _wMessage($parentWindow, "ERROR: Can not start a new Ásbrú Script while another one is still running:\nTerminal '$PACMain::RUNNING{$tmp_uuid}{terminal}{_NAME}' is running '$PACMain::RUNNING{$tmp_uuid}{terminal}{_SCRIPT_NAME}'", 1) ;
             next;
         }
 

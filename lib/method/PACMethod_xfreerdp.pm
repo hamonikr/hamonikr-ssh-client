@@ -3,7 +3,7 @@ package PACMethod_xfreerdp;
 ###############################################################################
 # This file is part of Ásbrú Connection Manager
 #
-# Copyright (C) 2017-2020 Ásbrú Connection Manager team (https://asbru-cm.net)
+# Copyright (C) 2017-2022 Ásbrú Connection Manager team (https://asbru-cm.net)
 # Copyright (C) 2010-2016 David Torrejon Vaquerizas
 #
 # Ásbrú Connection Manager is free software: you can redistribute it and/or
@@ -57,6 +57,7 @@ sub new {
     $self->{container} = shift;
 
     $self->{cfg} = undef;
+    $self->{cfg_array} = undef;
     $self->{gui} = undef;
     $self->{frame} = {};
 
@@ -69,9 +70,10 @@ sub new {
 sub update {
     my $self = shift;
     my $cfg = shift;
-    my $method = shift;
+    my $cfg_array = shift;
 
     defined $cfg and $$self{cfg} = $cfg;
+    defined $cfg_array and $$self{cfg_array} = $cfg_array;
 
     my $options = _parseCfgToOptions($$self{cfg});
 
@@ -100,6 +102,7 @@ sub update {
     $$self{gui}{chNoRDP}->set_active($$options{noRDP} // 0);
     $$self{gui}{chNoTLS}->set_active($$options{noTLS} // 0);
     $$self{gui}{chNoNLA}->set_active($$options{noNLA} // 0);
+    $$self{gui}{cbTlsSecLevel}->set_active($$options{tlsSecLevel} // 0);
     $$self{gui}{chFontSmooth}->set_active($$options{fontSmooth} // 0);
     $$self{gui}{chNoGrabKbd}->set_active($$options{noGrabKbd} // 0);
     $$self{gui}{entryStartupShell}->set_text($$options{startupshell} // '');
@@ -115,6 +118,15 @@ sub update {
     foreach my $hash (@{$$options{redirDisk}}) {$self->_buildRedir($hash);}
 
     return 1;
+}
+
+sub get_cfg_array
+{
+    my $self = shift;
+
+    my %options_array;
+
+    return \%options_array;
 }
 
 sub get_cfg {
@@ -145,6 +157,7 @@ sub get_cfg {
     $options{noRDP} = $$self{gui}{chNoRDP}->get_active;
     $options{noTLS} = $$self{gui}{chNoTLS}->get_active;
     $options{noNLA} = $$self{gui}{chNoNLA}->get_active;
+    $options{tlsSecLevel} = $$self{gui}{cbTlsSecLevel}->get_active();
     $options{fontSmooth} = $$self{gui}{chFontSmooth}->get_active;
     $options{noGrabKbd} = $$self{gui}{chNoGrabKbd}->get_active;
     $options{startupshell} = $$self{gui}{entryStartupShell}->get_chars(0, -1);
@@ -197,8 +210,9 @@ sub _parseCfgToOptions {
     $hash{noRDP} = 0;
     $hash{noTLS} = 0;
     $hash{noNLA} = 0;
+    $hash{tlsSecLevel} = 0;
     $hash{fontSmooth} = 0;
-        $hash{noGrabKbd} = 0;
+    $hash{noGrabKbd} = 0;
     $hash{startupshell} = '';
     $hash{otherOptions} = '';
 
@@ -227,6 +241,7 @@ sub _parseCfgToOptions {
         elsif ($opt eq '-sec-rdp')    {$hash{noRDP} = 1;}
         elsif ($opt eq '-sec-tls')    {$hash{noTLS} = 1;}
         elsif ($opt eq '-sec-nla')    {$hash{noNLA} = 1;}
+        elsif ($opt =~ /^\/tls-seclevel:([0-5])$/go) {$hash{tlsSecLevel} = $1;}
         elsif ($opt eq '+fonts')    {$hash{fontSmooth} = 1;}
         elsif ($opt eq '-grab-keyboard')    {$hash{noGrabKbd} = 1;}
         elsif ($opt =~ /^\/drive:(.+),(.+)$/g)
@@ -263,7 +278,7 @@ sub _parseOptionsToCfg {
     $txt .= ' /shell:' . $$hash{startupshell} if $$hash{startupshell} ne '';
     $txt .= ' /d:' . $$hash{domain} if $$hash{domain} ne '';
     $txt .= ' +clipboard' if $$hash{redirClipboard};
-        $txt .= ' /sound:sys:alsa' if $$hash{redirSound};
+    $txt .= ' /sound:sys:alsa' if $$hash{redirSound};
     $txt .= ' /cert-ignore' if $$hash{ignoreCert};
     $txt .= ' -authentication' if $$hash{noAuth};
     $txt .= ' -fast-path' if $$hash{nofastPath};
@@ -273,6 +288,7 @@ sub _parseOptionsToCfg {
     $txt .= ' -sec-rdp' if $$hash{noRDP};
     $txt .= ' -sec-tls' if $$hash{noTLS};
     $txt .= ' -sec-nla' if $$hash{noNLA};
+    $txt .= ' /tls-seclevel:' . $$hash{tlsSecLevel} if $$hash{tlsSecLevel}>0;
     $txt .= ' +fonts' if $$hash{fontSmooth};
     $txt .= ' -grab-keyboard' if $$hash{noGrabKbd};
 
@@ -308,7 +324,9 @@ sub _buildGUI {
 
                 $w{cbBPP} = Gtk3::ComboBoxText->new;
                 $w{frBPP}->add($w{cbBPP});
-                foreach my $bpp (8, 15, 16, 24, 32) {$w{cbBPP}->append_text($bpp);};
+                foreach my $bpp (8, 15, 16, 24, 32) {
+                    $w{cbBPP}->append_text($bpp);
+                };
 
             $w{chAttachToConsole} = Gtk3::CheckButton->new_with_label('Attach to console');
             $w{hbox1}->pack_start($w{chAttachToConsole}, 0, 1, 0);
@@ -367,6 +385,17 @@ sub _buildGUI {
             $w{chNoNLA} = Gtk3::CheckButton->new_with_label('Disable Network Level Authentication');
             $w{hbox4}->pack_start($w{chNoNLA}, 0, 1, 0);
             $w{chNoNLA}->set_tooltip_text("-sec-nla: disable network level authentication");
+
+            $w{frTlsSecLevel} = Gtk3::Frame->new('TLS Security Level:');
+            $w{hbox4}->pack_start($w{frTlsSecLevel}, 0, 1, 0);
+            $w{frTlsSecLevel}->set_shadow_type('GTK_SHADOW_NONE');
+            $w{frTlsSecLevel}->set_tooltip_text('[/tls-seclevel:] : set the TLS security level (0, 1, 2, 3, 4 or 5)');
+
+                $w{cbTlsSecLevel} = Gtk3::ComboBoxText->new;
+                $w{frTlsSecLevel}->add($w{cbTlsSecLevel});
+                foreach my $seclvl (0, 1, 2, 3, 4, 5) {
+                    $w{cbTlsSecLevel}->append_text($seclvl);
+                };
 
         $w{hboxss} = Gtk3::HBox->new(0, 5);
         $w{vbox}->pack_start($w{hboxss}, 0, 1, 5);
@@ -496,7 +525,8 @@ sub _buildGUI {
         my $opt_hash = _parseCfgToOptions($$self{cfg});
         push(@{$$opt_hash{redirDisk}}, {'redirDiskShare' => $ENV{'USER'}, 'redirDiskPath' => $ENV{'HOME'}});
         $$self{cfg} = _parseOptionsToCfg($opt_hash);
-        $self->update($$self{cfg});
+        $$self{cfg_array} = $self->get_cfg_array();
+        $self->update($$self{cfg}, $$self{cfg_array});
         return 1;
     });
 
@@ -548,7 +578,8 @@ sub _buildRedir {
         $$self{cfg} = $self->get_cfg();
         splice(@{$$self{listRedir}}, $w{position}, 1);
         $$self{cfg} = $self->get_cfg();
-        $self->update($$self{cfg});
+        $$self{cfg_array} = $self->get_cfg_array();
+        $self->update($$self{cfg}, $$self{cfg_array});
         return 1;
     });
 

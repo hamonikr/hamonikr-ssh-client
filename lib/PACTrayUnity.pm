@@ -3,7 +3,7 @@ package PACTrayUnity;
 ###############################################################################
 # This file is part of Ásbrú Connection Manager
 #
-# Copyright (C) 2017-2020 Ásbrú Connection Manager team (https://asbru-cm.net)
+# Copyright (C) 2017-2022 Ásbrú Connection Manager team (https://asbru-cm.net)
 # Copyright (C) 2010-2016 David Torrejon Vaquerizas
 #
 # Ásbrú Connection Manager is free software: you can redistribute it and/or
@@ -36,10 +36,31 @@ use FindBin qw ($RealBin $Bin $Script);
 
 # GTK
 use Gtk3 '-init';
-eval {require Gtk3::AppIndicator;}; $@ and die; # Tricky way to bypass "rpmbuild" necessity to mark this package as a depencency for the RPM... :(
 
 # PAC modules
 use PACUtils;
+
+# AppIndicator
+eval {
+    Glib::Object::Introspection->setup(
+        basename => 'AppIndicator3',
+        version  => '0.1',
+        package  => 'AppIndicator',
+    );
+};
+if ($@) {
+    eval {
+        Glib::Object::Introspection->setup(
+            basename => 'AyatanaAppIndicator3',
+            version  => '0.1',
+            package  => 'AppIndicator',
+        );
+    };
+    if ($@) {
+        warn "WARNING: AppIndicator is missing --> there might be no icon showing up in the status bar when running Unity!\n";
+        return 0;
+    }
+}
 
 # END: Import Modules
 ###################################################################
@@ -51,7 +72,7 @@ my $APPNAME = $PACUtils::APPNAME;
 my $APPVERSION = $PACUtils::APPVERSION;
 my $APPICON = $RealBin . '/res/asbru-logo-64.png';
 my $TRAYICON = $RealBin . '/res/asbru-logo-tray.png';
-my $GROUPICON_ROOT = _pixBufFromFile($RealBin . '/res/themes/default/asbru_group.png');
+my $GROUPICON_ROOT = _pixBufFromFile($RealBin . '/res/themes/default/asbru_group.svg');
 # END: Define GLOBAL CLASS variables
 ###################################################################
 
@@ -85,6 +106,39 @@ sub DESTROY {
     return 1;
 }
 
+# Returns TRUE if the tray icon is currently visible
+sub is_visible {
+    my $self = shift;
+
+    return $$self{_TRAY}->get_status() ne 'passive';
+}
+
+# Returns size and placement of the tray icon
+sub get_geometry {
+    my $self = shift;
+
+    # DevNote: there is no way API to retrieve the place of the icon ; returns dummy values
+    return ({}, {}, {x => 0, y => 0});
+}
+
+# Enable the tray menu
+sub set_tray_menu {
+    my $self = shift;
+
+    return $self->_setTrayMenu();
+}
+
+# Make the tray icon active/inactive (aka 'shown/hidden')
+sub set_active() {
+    my $self = shift;
+    $$self{_TRAY}->set_status('active');
+}
+sub set_passive() {
+    my $self = shift;
+    $$self{_TRAY}->set_status('passive');
+}
+
+
 # END: Define PUBLIC CLASS methods
 ###################################################################
 
@@ -94,9 +148,9 @@ sub DESTROY {
 sub _initGUI {
     my $self = shift;
 
-    $$self{_TRAY} = Gtk3::AppIndicator->new('pac', $TRAYICON);
+    $$self{_TRAY} = AppIndicator::Indicator->new('asbru-cm', $TRAYICON, 'application-status');
     $$self{_TRAY}->set_icon_theme_path($RealBin . '/res');
-    $$self{_TRAY}->set_active;
+    $$self{_TRAY}->set_status('active');
     $$self{_MAIN}{_CFG}{'tmp'}{'tray available'} = ! $@;
     return 1;
 }
@@ -108,34 +162,34 @@ sub _setTrayMenu {
 
     my @m;
 
-    push(@m, {label => 'Local Shell', stockicon => $PACMain::UNITY ? '' : 'gtk-home', code => sub {$PACMain::FUNCS{_MAIN}{_GUI}{shellBtn}->clicked;} });
+    push(@m, {label => 'Local Shell', stockicon => $PACMain::UNITY ? '' : 'gtk-home', code => sub {$PACMain::FUNCS{_MAIN}{_GUI}{shellBtn}->clicked();} });
     push(@m, {separator => 1});
     push(@m, {label => 'Clusters', stockicon => $PACMain::UNITY ? '' : 'asbru-cluster-manager', submenu => _menuClusterConnections}) unless $PACMain::UNITY;
     push(@m, {label => 'Favourites', stockicon => $PACMain::UNITY ? '' : 'asbru-favourite-on', submenu => _menuFavouriteConnections});
     push(@m, {label => 'Connect to', stockicon => 'asbru-group', submenu => _menuAvailableConnections($PACMain::FUNCS{_MAIN}{_GUI}{treeConnections}{data})});
     push(@m, {separator => 1});
-    push(@m, {label => 'Preferences...', stockicon => 'gtk-preferences', code => sub {$$self{_MAIN}{_CONFIG}->show;} });
-    push(@m, {label => 'Clusters...', stockicon => $PACMain::UNITY ? '' : 'gtk-justify-fill'    , code => sub {$$self{_MAIN}{_CLUSTER}->show;}  });
-    push(@m, {label => 'PCC', stockicon => 'gtk-justify-fill', code => sub {$$self{_MAIN}{_PCC}->show;}});
+    push(@m, {label => 'Preferences...', stockicon => 'gtk-preferences', code => sub {$$self{_MAIN}{_CONFIG}->show();} });
+    push(@m, {label => 'Clusters...', stockicon => $PACMain::UNITY ? '' : 'gtk-justify-fill'    , code => sub {$$self{_MAIN}{_CLUSTER}->show();}  });
+    push(@m, {label => 'PCC', stockicon => 'gtk-justify-fill', code => sub {$$self{_MAIN}{_PCC}->show();}});
     push(@m, {label => 'Show Window', stockicon => $PACMain::UNITY ? '' : 'gtk-home', code => sub {
         # Check if show password is required
         if ($$self{_MAIN}{_CFG}{'defaults'}{'use gui password'} && $$self{_MAIN}{_CFG}{'defaults'}{'use gui password tray'}) {
             # Trigger the "unlock" procedure
-            $$self{_MAIN}{_GUI}{lockPACBtn}->set_active(0);
-            if (! $$self{_MAIN}{_GUI}{lockPACBtn}->get_active) {
-                $$self{_MAIN}{_CFG}{defaults}{'show tray icon'} ? $$self{_TRAY}->set_active : $$self{_TRAY}->set_passive;
-                $$self{_MAIN}->_showConnectionsList;
+            $$self{_MAIN}{_GUI}{lockApplicationBtn}->set_status('passive');
+            if (! $$self{_MAIN}{_GUI}{lockApplicationBtn}->get_active()) {
+                $$self{_MAIN}{_CFG}{defaults}{'show tray icon'} ? $$self{_TRAY}->set_status('active') : $$self{_TRAY}->set_passive();
+                $$self{_MAIN}->_showConnectionsList();
             }
         } else {
-            $$self{_MAIN}{_CFG}{defaults}{'show tray icon'} ? $$self{_TRAY}->set_active : $$self{_TRAY}->set_passive;
-            $$self{_MAIN}->_showConnectionsList;
+            $$self{_MAIN}{_CFG}{defaults}{'show tray icon'} ? $$self{_TRAY}->set_status('active') : $$self{_TRAY}->set_passive();
+            $$self{_MAIN}->_showConnectionsList();
         }
     }});
     push(@m, {separator => 1});
-    push(@m, {label => 'About', stockicon => 'gtk-about', code => sub {$$self{_MAIN}->_showAboutWindow;} });
-    push(@m, {label => 'Exit', stockicon => 'gtk-quit', code => sub {$$self{_MAIN}->_quitProgram;} });
+    push(@m, {label => 'About', stockicon => 'gtk-about', code => sub {$$self{_MAIN}->_showAboutWindow();} });
+    push(@m, {label => 'Exit', stockicon => 'gtk-quit', code => sub {$$self{_MAIN}->_quitProgram();} });
 
-    $$self{_TRAY}->set_menu(_wPopUpMenu(\@m, $event, 'below calling widget', 'get_menu_ref') );
+    $$self{_TRAY}->set_menu(_wPopUpMenu(\@m, $event, 'below calling widget', 'get_menu_ref'));
 
     return 1;
 }

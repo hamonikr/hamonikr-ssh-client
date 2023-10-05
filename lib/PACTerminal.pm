@@ -3,7 +3,7 @@ package PACTerminal;
 ###############################################################################
 # This file is part of Ásbrú Connection Manager
 #
-# Copyright (C) 2017-2020 Ásbrú Connection Manager team (https://asbru-cm.net)
+# Copyright (C) 2017-2022 Ásbrú Connection Manager team (https://asbru-cm.net)
 # Copyright (C) 2010-2016 David Torrejón Vaquerizas
 #
 # Ásbrú Connection Manager is free software: you can redistribute it and/or
@@ -21,8 +21,8 @@ package PACTerminal;
 # If not, see <http://www.gnu.org/licenses/gpl-3.0.html>.
 ###############################################################################
 use utf8;
-binmode STDOUT,':utf8';
-binmode STDERR,':utf8';
+binmode STDOUT, ':utf8';
+binmode STDERR, ':utf8';
 
 $|++;
 
@@ -42,6 +42,9 @@ use Encode qw (encode decode);
 use IO::Socket::INET;
 use Time::HiRes qw (gettimeofday);
 use PACKeePass;
+use List::Util qw (min max);
+
+use Config;
 
 # GTK
 use Gtk3 '-init';
@@ -67,7 +70,6 @@ my $APPVERSION = $PACUtils::APPVERSION;
 my $APPICON = "$RealBin/res/asbru-logo-64.png";
 my $CFG_DIR = $ENV{"ASBRU_CFG"};
 
-my $PERL_BIN = '/usr/bin/perl';
 my $PAC_CONN = "$RealBin/lib/asbru_conn";
 
 my $SHELL_BIN = -x '/bin/sh' ? '/bin/sh' : '/bin/bash';
@@ -144,39 +146,43 @@ sub new {
     $self->{_FOCUSED} = 0;
     $self->{FOCUS} = 0;
     $self->{EMBED} = $self->{_CFG}{'environments'}{$$self{_UUID}}{'embed'};
+    $self->{EMBED_CHECK_COUNT} = 0;
+    $self->{EMBED_CHECK_TIMEOUT} = 250; # in milliseconds
+    $self->{EMBED_CHECK_TIMEOUT_ID} = undef;
+    $self->{VTE_EMULATION} = $self->{_CFG}{'environments'}{$$self{'_UUID'}}{'terminal options'}{'use personal settings'} ? $self->{_CFG}{'environments'}{$$self{'_UUID'}}{'terminal options'}{'terminal emulation'} // 0 : 0;
 
     ++$_C;
     $self->{_UUID_TMP} = "asbru_PID{$$}_n$_C";
 
     if ($self->{_CFG}{'environments'}{$$self{_UUID}}{'save session logs'}) {
         $self->{_LOGFILE} = $self->{_CFG}{'environments'}{$$self{_UUID}}{'session logs folder'} . '/';
-        $self->{_LOGFILE} .= _subst($self->{_CFG}{'environments'}{$$self{_UUID}}{'session log pattern'}, $$self{_CFG}, $$self{_UUID});
+        $self->{_LOGFILE} .= _subst($self->{_CFG}{'environments'}{$$self{_UUID}}{'session log pattern'}, $$self{_CFG}, $$self{_UUID}, $$self{_UUID_TMP});
     } elsif ($self->{_CFG}{'defaults'}{'save session logs'}) {
         $self->{_LOGFILE} = $self->{_CFG}{'defaults'}{'session logs folder'} . '/';
-        $self->{_LOGFILE} .= _subst($self->{_CFG}{'defaults'}{'session log pattern'}, $$self{_CFG}, $$self{_UUID});
+        $self->{_LOGFILE} .= _subst($self->{_CFG}{'defaults'}{'session log pattern'}, $$self{_CFG}, $$self{_UUID}, $$self{_UUID_TMP});
     } else {
         $self->{_LOGFILE} = "$CFG_DIR/tmp/$$self{_UUID_TMP}.txt";
     }
     $self->{_TMPCFG} = "$CFG_DIR/tmp/$$self{_UUID_TMP}freeze";
 
-    $self->{_TMPPIPE} = "$CFG_DIR/tmp/asbru_PID{$$}_n$_C.pipe";
+    $self->{_TMPPIPE} = $ENV{"ASBRU_TMP"}."/asbru_PID{$$}_n$_C.pipe";
     while (-f $$self{_TMPPIPE}) {
         ++$_C;
-        $$self{_TMPPIPE} = "$CFG_DIR/tmp/asbru_PID{$$}_n$_C.pipe";
+        $$self{_TMPPIPE} = $ENV{"ASBRU_TMP"}."/asbru_PID{$$}_n$_C.pipe";
     }
     unlink $$self{_TMPPIPE};
 
-    $self->{_TMPSOCKET} = "$CFG_DIR/sockets/asbru_PID{$$}_n$_C.socket";
+    $self->{_TMPSOCKET} = $ENV{"ASBRU_TMP"}."/asbru_PID{$$}_n$_C.socket";
     while (-f $$self{_TMPSOCKET}) {
         ++$_C;
-        $$self{_TMPSOCKET} = "$CFG_DIR/sockets/asbru_PID{$$}_n$_C.socket";
+        $$self{_TMPSOCKET} = $ENV{"ASBRU_TMP"}."/asbru_PID{$$}_n$_C.socket";
     }
     unlink $$self{_TMPSOCKET};
 
-    $self->{_TMPSOCKETEXEC} = "$CFG_DIR/sockets/asbru_PID{$$}_n$_C.exec.socket";
+    $self->{_TMPSOCKETEXEC} = $ENV{"ASBRU_TMP"}."/asbru_PID{$$}_n$_C.exec.socket";
     while (-f $$self{_TMPSOCKETEXEC}) {
         ++$_C;
-        $$self{_TMPSOCKETEXEC} = "$CFG_DIR/sockets/asbru_PID{$$}_n$_C.exec.socket";
+        $$self{_TMPSOCKETEXEC} = $ENV{"ASBRU_TMP"}."/asbru_PID{$$}_n$_C.exec.socket";
     }
     unlink $$self{_TMPSOCKETEXEC};
 
@@ -189,18 +195,20 @@ sub new {
     my $name = $$self{_CFG}{'environments'}{$$self{_UUID}}{'name'};
     my $title = $$self{_CFG}{'environments'}{$$self{_UUID}}{'title'};
     $$self{_TITLE} = $title || $name;
-    $$self{_TITLE} = _subst($$self{_TITLE}, $$self{_CFG}, $$self{_UUID});
+    $$self{_TITLE} = _subst($$self{_TITLE}, $$self{_CFG}, $$self{_UUID}, $$self{_UUID_TMP});
 
     # Build the GUI
     _initGUI($self) or return 0;
     # Setup callbacks
     _setupCallbacks($self) or return 0;
     # Load connection methods
-    %{$$self{_METHODS}} = _getMethods($self,$PACMain::FUNCS{_MAIN}{_THEME}) or return 0;
+    %{$$self{_METHODS}} = _getMethods($self, $PACMain::FUNCS{_MAIN}{_THEME}) or return 0;
 
     $PACMain::RUNNING{$$self{'_UUID_TMP'}}{'uuid'} = $$self{'_UUID'};
     $PACMain::RUNNING{$$self{'_UUID_TMP'}}{'terminal'} = $self;
     $PACMain::RUNNING{$$self{'_UUID_TMP'}}{'is_shell'} = 0;
+
+    $PACMain::FUNCS{_KEYBINDS}->LoadHotKeys($$self{_CFG}, $$self{_UUID});
 
     $self->{_EXPECTED} = 0;
     $self->{_PULSE} = 1;
@@ -243,7 +251,7 @@ sub new {
             if (defined $self->{_SOCKET_CONN}) {
                 $self->{_SOCKET_CONN}->close();
             }
-            _wMessage($$self{_WINDOWTERMINAL}, 'Master socket at port ' . $self->{_SOCKET_PORT} . ' was closed !!');
+            _wMessage($$self{_PARENTWINDOW}, 'Master socket at port ' . $self->{_SOCKET_PORT} . ' was closed !!');
             return 0;
         }
 
@@ -300,25 +308,34 @@ sub start {
     if ($$self{CONNECTED} || $$self{CONNECTING}) {
         return 1;
     }
-
-    # If this terminal requires a KeePass database file and that we don't have a connection to a KeePass file yet; ask for the database password now
-    if (!$ENV{'KPXC_MP'} && $PACMain::FUNCS{_KEEPASS}->hasKeePassField($$self{_CFG},$$self{_UUID})) {
-        my $kpxc = PACKeePass->new(0, $$self{_CFG}{defaults}{keepass});
-        $kpxc->getMasterPassword($PACMain::FUNCS{_MAIN}{_GUI}{main});
-    }
-
     my $name = $$self{_CFG}{'environments'}{$$self{_UUID}}{'name'};
-    my $title = $$self{_CFG}{'environments'}{$$self{_UUID}}{'title'};
+    my $title = $$self{_TITLE};
     my $method = $$self{_CFG}{'environments'}{$$self{_UUID}}{'method'};
     my $reconnect_msg = '';
     my $reconnect_count = '';
+
+    # Check that session information is still valid
+    if (!defined($name)) {
+        # Session is invalid for some reason, ignore
+        return 0;
+    }
+
+    # If this terminal requires a KeePass database file and that we don't have a connection to a KeePass file yet; ask for the database password now
+    if (!$ENV{'KPXC_MP'} && $PACMain::FUNCS{_KEEPASS}->hasKeePassField($$self{_CFG}, $$self{_UUID})) {
+        if ($$self{_CFG}{defaults}{keepass}{password}) {
+            $ENV{'KPXC_MP'} = $$self{_CFG}{defaults}{keepass}{password};
+        } else {
+            my $kpxc = PACKeePass->new(0, $$self{_CFG}{defaults}{keepass});
+            $kpxc->getMasterPassword($$self{_PARENTWINDOW});
+        }
+    }
 
     if ($$self{'_RECONNECTS'}) {
         $reconnect_msg = 'RE';
         $reconnect_count = " ${COL_RED}attempt:$$self{'_RECONNECTS'}${COL_RESET}";
     }
-    my $string = $method eq 'generic' ? encode('UTF-8',"${COL_GREEN}${reconnect_msg}LAUNCHING${COL_RESET} ${COL_YELL}$title${COL_RESET}") : encode('UTF-8',"${COL_GREEN}${reconnect_msg}CONNECTING WITH${COL_RESET} ${COL_YELL}$title${COL_RESET}");
-    _vteFeed($$self{_GUI}{_VTE},"\r\n$string (" . (localtime(time)) . ")$reconnect_count\r\n\n");
+    my $string = $method eq 'generic' ? encode('UTF-8', "${COL_GREEN}${reconnect_msg}LAUNCHING${COL_RESET} ${COL_YELL}$title${COL_RESET}") : encode('UTF-8', "${COL_GREEN}${reconnect_msg}CONNECTING WITH${COL_RESET} ${COL_YELL}$title${COL_RESET}");
+    _vteFeed($$self{_GUI}{_VTE}, "\r\n$string (" . (localtime(time)) . ")$reconnect_count\r\n\n");
 
     $$self{_PULSE} = 1;
 
@@ -342,18 +359,25 @@ sub start {
     $$self{_CFG}{'tmp'}{'uuid'} = $$self{_UUID_TMP};
 
     if ($$self{'EMBED'}) {
+        # Reset counter
+        $self->{EMBED_CHECK_COUNT} = 0;
+
         # Create new socket window to plug the embed window from the other process (rdp, vnc, ...)
         # (remove any remaining window before starting to add a new one)
         $$self{_GUI}{_SOCKET} = Gtk3::Socket->new();
-        $$self{_GUI}{_SOCKET_PARENT_WINDOW}->foreach(sub {$$self{_GUI}{_SOCKET_PARENT_WINDOW}->remove($_[0]);});
+        $$self{_GUI}{_SOCKET_PARENT_WINDOW}->foreach(sub {
+            $$self{_GUI}{_SOCKET_PARENT_WINDOW}->remove($_[0]);
+        });
         $$self{_GUI}{_SOCKET_PARENT_WINDOW}->add_with_viewport($$self{_GUI}{_SOCKET});
+
+        # Do not show until conncection is completed
+        $$self{_GUI}{_SOCKET_PARENT_WINDOW}->hide();
 
         # Retrieve the XID of the window on which the external process will have to plug into
         if ($$self{_GUI}{_SOCKET}->get_window()) {
             $$self{_CFG}{'tmp'}{'xid'} = $$self{_GUI}{_SOCKET}->get_window()->get_xid();
             $$self{FOCUS} = $$self{_GUI}{_SOCKET};
         } else {
-            $$self{_GUI}{_SOCKET_PARENT_WINDOW}->hide();
             _vteFeed($$self{_GUI}{_VTE}, " !! ${COL_RED}ERROR${COL_RESET}: unable to created embedded window.  Terminal will be started in a separated window.\r\n\n");
         }
 
@@ -363,8 +387,11 @@ sub start {
         # Get available size for the embed window
         $$self{_CFG}{'tmp'}{'width'} = $$self{_GUI}{_VBOX}->get_allocated_width();
         $$self{_CFG}{'tmp'}{'height'} = $$self{_GUI}{_VBOX}->get_allocated_height() - $$self{_GUI}{bottombox}->get_allocated_height();
+        if (defined($$self{_GUI}{_MACROSBOX}) && $$self{_GUI}{_MACROSBOX}->get_visible()) {
+            $$self{_CFG}{'tmp'}{'height'} -= $$self{_GUI}{_MACROSBOX}->get_allocated_height();
+        }
         eval {
-            $PACMain::FUNCS{_MAIN}{_GUI}{vbox3}->get_visible() or $$self{_CFG}{'tmp'}{'width'} += $PACMain::FUNCS{_MAIN}{_GUI}{vbox3}->get_allocated_width();
+            $PACMain::FUNCS{_MAIN}{_GUI}{vboxCommandPanel}->get_visible() or $$self{_CFG}{'tmp'}{'width'} += $PACMain::FUNCS{_MAIN}{_GUI}{vboxCommandPanel}->get_allocated_width();
         };
     } else {
         delete $$self{_CFG}{'tmp'}{'xid'};
@@ -379,6 +406,11 @@ sub start {
     $new_cfg{'tmp'} = dclone($$self{_CFG}{'tmp'});
     if (defined $$self{_MANUAL}) {
         $new_cfg{'environments'}{$$self{_UUID}}{'auth type'} = $$self{_MANUAL};
+    }
+    if ($$self{_CFG}{'environments'}{$$self{_UUID}}{'method'} =~ /ssh/i && $$self{_CFG}{'environments'}{$$self{_UUID}}{'connection options'}{'randomSocksTunnel'}) {
+        my $SOCKS5PORT = _getLocalPort(10240 + int(rand(65535 - 10240)));
+        $PACMain::SOCKS5PORTS{$$self{_UUID_TMP}} = $SOCKS5PORT;
+        $new_cfg{'tmp'}{'randomSocksTunnel'} = $SOCKS5PORT;
     }
     nstore(\%new_cfg, $$self{_TMPCFG}) or die"ERROR: Could not save Ásbrú config file '$$self{_TMPCFG}': $!";
     undef %new_cfg;
@@ -406,13 +438,23 @@ sub start {
     my $isCluster = $$self{_CLUSTER} ? 1 : 0;
     # Start and fork our connector
     my @args;
+    my $spawn_env;
+    my $subCwd = $method eq 'PACShell' ? $$self{_CFG}{'defaults'}{'shell directory'} : '.';
     if ($$self{_CFG}{'defaults'}{'use login shell to connect'}) {
-        @args = [$SHELL_BIN, $SHELL_NAME, '-l', '-c', "($PERL_BIN $PAC_CONN $$self{_TMPCFG} $$self{_UUID} $isCluster; exit)"];
+        @args = [$SHELL_BIN, $SHELL_NAME, '-l', '-c', "($ENV{'ASBRU_ENV_FOR_INTERNAL'} '$^X' '$PAC_CONN' '$$self{_TMPCFG}' '$$self{_UUID}' '$isCluster'; exit)"];
+        $spawn_env = $ENV{'ASBRU_ENV_FOR_EXTERNAL'};
     } else {
-        @args = [$PERL_BIN, 'perl', $PAC_CONN, $$self{_TMPCFG}, $$self{_UUID}, $isCluster];
+        @args = [$^X, $^X, $PAC_CONN, $$self{_TMPCFG}, $$self{_UUID}, $isCluster];
+        $spawn_env = "";
     }
-    if (!$$self{_GUI}{_VTE}->spawn_sync([], $method eq 'PACShell' ? $$self{_CFG}{'defaults'}{'shell directory'} : undef, @args, undef, 'G_SPAWN_FILE_AND_ARGV_ZERO', undef, undef, undef)) {
-        $$self{ERROR} = "ERROR: VTE could not fork command '$PAC_CONN $$self{_TMPCFG} $$self{_UUID}'!!";
+    $spawn_env .= " ASBRU_SUB_CWD='$subCwd'";
+    my @arr_spawn_env = $self->_convertEnv($spawn_env);
+    my $spawnSyncResult = undef;
+    eval {
+        $spawnSyncResult = $$self{_GUI}{_VTE}->spawn_sync([], undef, @args, \@arr_spawn_env, 'G_SPAWN_FILE_AND_ARGV_ZERO', undef, undef, undef);
+    };
+    if (!$spawnSyncResult || $@) {
+        $$self{ERROR} = "ERROR: VTE could not fork command '$PAC_CONN $$self{_TMPCFG} $$self{_UUID} $isCluster $subCwd'!! at: $@";
         $$self{CONNECTING} = 0;
         return 0;
     }
@@ -437,30 +479,25 @@ sub start {
         $PACMain::FUNCS{_CLUSTER}->addToCluster($$self{_UUID_TMP}, $$self{_CLUSTER});
     }
 
-    # Create a Glib timeout to programatically send a given string to the connected terminal (if so is configured!)
-    defined $$self{_SEND_STRING} and Glib::Source->remove($$self{_SEND_STRING});
-    $$self{_CFG}{environments}{$$self{_UUID}}{'send string active'} and $$self{_SEND_STRING} = Glib::Timeout->add_seconds(
-        $$self{_CFG}{environments}{$$self{_UUID}}{'send string every'},
-        sub {
-            if (not $$self{CONNECTED} && $$self{_CFG}{environments}{$$self{_UUID}}{'send string active'}) {
-                return 1;
-            }
+    $self->_startSendStringTimeout();
 
-            my $txt = $$self{_CFG}{environments}{$$self{_UUID}}{'send string txt'};
-            my $intro = $$self{_CFG}{environments}{$$self{_UUID}}{'send string intro'};
-            $txt = _subst($txt, $$self{_CFG}, $$self{_UUID});
-            _vteFeedChild($$self{_GUI}{_VTE}, $txt . ($intro ? "\n" : ''));
-
-            return 1;
-        }
-    );
-
-    $$self{_CFG}{'environments'}{$$self{_UUID}}{'startup script'} and $PACMain::FUNCS{_SCRIPTS}->_execScript($$self{_CFG}{'environments'}{$$self{_UUID}}{'startup script name'}, $$self{_UUID_TMP});
+    $$self{_CFG}{'environments'}{$$self{_UUID}}{'startup script'} and $PACMain::FUNCS{_SCRIPTS}->_execScript($$self{_CFG}{'environments'}{$$self{_UUID}}{'startup script name'}, $self->{_PARENTWINDOW}, $$self{_UUID_TMP});
     $$self{_GUI}{_VTE}->grab_focus();
     if ($PACMain::FUNCS{_MAIN}{_Vte}{has_bright}) {
         $$self{_GUI}{_VTE}->set_bold_is_bright($$self{_CFG}{'defaults'}{'bold is brigth'});
     }
     return 1;
+}
+
+# Converts env vars string list to array
+sub _convertEnv {
+    my $self = shift;
+    my $env_string = shift;
+    my @matches = ();
+    while ($env_string =~ /(?<envName>\w+)=(?<envValue>(?<quot>['"]?)[^']*?\k{quot})/g) {
+        push @matches, "$+{envName}=$+{envValue}";
+    }
+    return @matches;
 }
 
 # Stop and close GUI
@@ -476,7 +513,9 @@ sub stop {
     my $p_widget = $$self{_GUI}{_VBOX};
 
     # Set mouse pointer in case a postexec was executed
-    $$self{_GUI}{_VBOX}->get_window()->set_cursor(Gtk3::Gdk::Cursor->new('left-ptr'));
+    if ($p_widget->get_window()) {
+        $p_widget->get_window()->set_cursor(Gtk3::Gdk::Cursor->new('left-ptr'));
+    }
 
     if ($NPOSX>0) {
         $NPOSX--;
@@ -509,6 +548,10 @@ sub stop {
         }
     }
 
+    if ($$self{_CLUSTER} ne '') {
+        $PACMain::FUNCS{_CLUSTER}->delFromCluster($$self{_UUID_TMP}, $$self{_CLUSTER});
+    }
+
     # Send any configured keypress to close the forked binary
     if ($$self{CONNECTED} && defined $$self{_METHODS}{$$self{_CFG}{'environments'}{$$self{_UUID}}{'method'}}{'escape'}) {
         foreach my $esc (@{$$self{_METHODS}{$$self{_CFG}{'environments'}{$$self{_UUID}}{'method'}}{'escape'}}) {
@@ -528,9 +571,7 @@ sub stop {
     }
 
     # Try to ensure we leave no background "asbru_conn" processes running after closing the terminal
-    if ($$self{_PID}) {
-        kill(15, $$self{_PID});
-    }
+    $self->_disconnectTerminal();
     if ($$self{_PID}) {
         $PACMain::FUNCS{_STATS}->stop($$self{_UUID});
     }
@@ -550,19 +591,16 @@ sub stop {
     if (defined $$self{_SEND_STRING}) {
         eval {
             Glib::Source->remove($$self{_SEND_STRING});
+            undef $$self{_SEND_STRING};
         };
     }
-    if (defined $$self{_EMBED_KIDNAP}) {
-        eval {
-            Glib::Source->remove($$self{_EMBED_KIDNAP});
-        };
-    }
+    $self->_stopEmbedKidnapTimeout();
 
     # Finish the GUI
     if ($$self{_TABBED}) {
         my $p_num = -1;
         if ($$self{_SPLIT}) {
-            $p_num = $$self{_NOTEBOOK}->page_num($p_widget->get_parent);
+            $p_num = $$self{_NOTEBOOK}->page_num($p_widget->get_parent());
         } else {
             $p_num = $$self{_NOTEBOOK}->page_num($p_widget);
         }
@@ -579,6 +617,7 @@ sub stop {
     unlink($$self{_TMPCFG});
     unlink($$self{_TMPPIPE});
     unlink($$self{_TMPSOCKET});
+    unlink($$self{_TMPSOCKETEXEC});
     if (!($self->{_CFG}{'defaults'}{'save session logs'} || $self->{_CFG}{'environments'}{$$self{_UUID}}{'save session logs'})) {
         unlink($$self{_LOGFILE});
     }
@@ -587,6 +626,8 @@ sub stop {
     if ($$self{_UUID} =~ /^_tmp_/go) {
         delete $$self{_CFG}{environments}{$$self{_UUID}};
     }
+
+    delete $PACMain::SOCKS5PORTS{$$self{_UUID_TMP}};
 
     # And delete ourselves
     $$self{_GUI} = undef;
@@ -617,6 +658,44 @@ sub unlock {
 
 ###################################################################
 # START: Private functions definitions
+
+# Create a Glib timeout to programatically send a given string to the connected terminal (if so is configured!)
+sub _startSendStringTimeout {
+    my $self = shift;
+    defined $$self{_SEND_STRING} and Glib::Source->remove($$self{_SEND_STRING});
+    $$self{_CFG}{environments}{$$self{_UUID}}{'send string active'} and $$self{_SEND_STRING} = Glib::Timeout->add_seconds(
+        $$self{_CFG}{environments}{$$self{_UUID}}{'send string every'},
+        sub {
+            if (not $$self{CONNECTED} && $$self{_CFG}{environments}{$$self{_UUID}}{'send string active'}) {
+                return 1;
+            }
+
+            my $txt = $$self{_CFG}{environments}{$$self{_UUID}}{'send string txt'};
+            my $intro = $$self{_CFG}{environments}{$$self{_UUID}}{'send string intro'};
+            $txt = _subst($txt, $$self{_CFG}, $$self{_UUID}, $$self{_UUID_TMP});
+            _vteFeedChild($$self{_GUI}{_VTE}, $txt . ($intro ? "\n" : ''));
+
+            return 1;
+        }
+    );
+}
+
+# Find out a free local TCP port
+sub _getLocalPort {
+    my $LPORT = shift;
+
+    my $PING = Net::Ping->new('tcp');
+    $PING->service_check(0);
+
+    for (my $break = 0; $break < 100; ++$break) {
+        $PING->port_number($LPORT);
+        if (!$PING->ping('localhost')) {
+            return $LPORT;
+        }
+        $LPORT++;
+    }
+    return $LPORT;
+}
 
 sub _initGUI {
     my $self = shift;
@@ -690,7 +769,10 @@ sub _initGUI {
         # Checkbutton to send or not to all terminals in cluster
         $$self{_GUI}{_MACROSCLUSTER} = Gtk3::CheckButton->new_with_label('Sending THIS: ');
         $$self{_GUI}{_MACROSCLUSTER}->set('can-focus', 0);
-        $$self{_GUI}{_MACROSCLUSTER}->signal_connect('toggled', sub {$$self{_GUI}{_MACROSCLUSTER}->set_label($$self{_GUI}{_MACROSCLUSTER}->get_active ? 'Sending CLUSTER: ' : 'Sending THIS: ');});
+        $$self{_GUI}{_MACROSCLUSTER}->signal_connect('toggled', sub {
+            my $str = $$self{_GUI}{_MACROSCLUSTER}->get_active() ? 'Sending CLUSTER: ' : 'Sending THIS: ';
+            $$self{_GUI}{_MACROSCLUSTER}->set_label($str);
+        });
         $$self{_GUI}{_MACROSBOX}->pack_start($$self{_GUI}{_MACROSCLUSTER}, 0, 1, 0);
 
         # Create a GtkComboBox and add it to $macrosbox
@@ -746,7 +828,6 @@ sub _initGUI {
         # Create a button to show the info tab
         $$self{_GUI}{btnShowInfoTab} = Gtk3::Button->new();
         $$self{_GUI}{btnShowInfoTab}->set_image(Gtk3::Image->new_from_stock('gtk-info', 'GTK_ICON_SIZE_BUTTON'));
-        $$self{_GUI}{btnShowInfoTab}->set_tooltip_text('Show information tab (Shift+Ctrl+I)');
         $$self{_GUI}{bottombox}->pack_end($$self{_GUI}{btnShowInfoTab}, 0, 1, 4);
     }
 
@@ -784,7 +865,8 @@ sub _initGUI {
     $$self{_GUI}{bottombox}->pack_start($$self{_GUI}{statusCluster}, 0, 0, 4);
 
     # Set the number of scrollback lines
-    $$self{_GUI}{_VTE}->set_scrollback_lines($$self{_CFG}{'defaults'}{'terminal scrollback lines'});
+    # If -2, uses the global preferences, otherwise use the value defined in terminal options
+    $$self{_GUI}{_VTE}->set_scrollback_lines($$self{_CFG}{environments}{$$self{_UUID}}{'terminal options'}{'terminal scrollback lines'} > -2 ? $$self{_CFG}{environments}{$$self{_UUID}}{'terminal options'}{'terminal scrollback lines'} : $$self{_CFG}{'defaults'}{'terminal scrollback lines'});
 
     ############################################################################
     # Check if this terminal should start in a new window or in a new tab/window
@@ -825,6 +907,7 @@ sub _initGUI {
 
         _setupTabDND($self);
 
+        # DevNote: append_page is having a side effect that shows the main window (if hidden), see #783
         $tabs->append_page($$self{_GUI}{_VBOX}, $$self{_GUI}{_TABLBL});
         $tabs->show();
         $$self{_GUI}{_VBOX}->show_all();
@@ -841,6 +924,7 @@ sub _initGUI {
         if ($$self{_CFG}{'defaults'}{'start maximized'}) {
             $$self{_NOTEBOOKWINDOW}->maximize();
         }
+        $self->{_PARENTWINDOW} = $$self{_NOTEBOOKWINDOW};
 
     }
     # New WINDOW:
@@ -880,7 +964,7 @@ sub _initGUI {
         }
         $$self{_WINDOWTERMINAL}->set_icon_name('gtk-disconnect');
         $$self{_WINDOWTERMINAL}->add($$self{_GUI}{_VBOX});
-        $$self{_WINDOWTERMINAL}->move(($NPOSX*$hsize+3),5+($NPOSY*$vsize+($NPOSY*50)));
+        $$self{_WINDOWTERMINAL}->move(($NPOSX*$hsize+3), 5+($NPOSY*$vsize+($NPOSY*50)));
 
         if (($$self{_CFG}{environments}{$$self{_UUID}}{'terminal options'}{'use personal settings'} && $$self{_CFG}{environments}{$$self{_UUID}}{'terminal options'}{'terminal transparency'} > 0) || $$self{_CFG}{defaults}{'terminal support transparency'}) {
             _setWindowPaintable($$self{_WINDOWTERMINAL});
@@ -893,6 +977,7 @@ sub _initGUI {
             $NPOSY++;
             $NPOSX = 0;
         }
+        $self->{_PARENTWINDOW} = $$self{_WINDOWTERMINAL};
     }
 
     _updateCFG($self);
@@ -919,29 +1004,31 @@ sub _setupCallbacks {
     # Info button event (if any)
     if ($$self{_GUI}{btnShowInfoTab}) {
         $$self{_GUI}{btnShowInfoTab}->signal_connect('clicked', sub {
-            $self->_showInfoTab ();
+            $self->_showInfoTab();
         });
     }
 
     # Mouse move in out VTE events
-    $$self{_CFG}{defaults}{'tabs in main window'} and $$self{_GUI}{_VTE}->signal_connect('motion_notify_event', sub {
-        if ($$self{_CFG}{'defaults'}{'prevent mouse over show tree'}) {
+    if ($$self{_CFG}{defaults}{'tabs in main window'}) {
+        $$self{_GUI}{_VTE}->signal_connect('motion_notify_event', sub {
+            if ($$self{_CFG}{'defaults'}{'prevent mouse over show tree'}) {
+                return 0;
+            }
+            my @geo = $$self{_GUI}{_VTE}->get_window()->get_geometry();
+            if ($$self{_CFG}{defaults}{'tree on right side'}) {
+                if ($$self{_SPLIT_VPANE} && (($$self{_SPLIT_VPANE}->get_child1()) eq $$self{_GUI}{_VBOX}) && !$$self{_SPLIT_VERTICAL}) {
+                    return 0;
+                }
+                $PACMain::FUNCS{_MAIN}{_GUI}{showConnBtn}->set_active($_[1]->x >= ($geo[2] - 30));
+            } else {
+                if ($$self{_SPLIT_VPANE} && (($$self{_SPLIT_VPANE}->get_child2()) eq $$self{_GUI}{_VBOX}) && !$$self{_SPLIT_VERTICAL}) {
+                    return 0;
+                }
+                $PACMain::FUNCS{_MAIN}{_GUI}{showConnBtn}->set_active($_[1]->x <= 10);
+            }
             return 0;
-        }
-        my @geo = $$self{_GUI}{_VTE}->get_window()->get_geometry();
-        if ($$self{_CFG}{defaults}{'tree on right side'}) {
-            if ($$self{_SPLIT_VPANE} && (($$self{_SPLIT_VPANE}->get_child1) eq $$self{_GUI}{_VBOX}) && ! $$self{_SPLIT_VERTICAL}) {
-                return 0;
-            }
-            $PACMain::FUNCS{_MAIN}{_GUI}{showConnBtn}->set_active($_[1]->x >= ($geo[2] - 30));
-        } else {
-            if ($$self{_SPLIT_VPANE} && (($$self{_SPLIT_VPANE}->get_child2) eq $$self{_GUI}{_VBOX}) && ! $$self{_SPLIT_VERTICAL}) {
-                return 0;
-            }
-            $PACMain::FUNCS{_MAIN}{_GUI}{showConnBtn}->set_active($_[1]->x <= 10);
-        }
-        return 0;
-    });
+        });
+    }
 
     # ------------------------------
     # Register callbacks from VTE
@@ -959,6 +1046,9 @@ sub _setupCallbacks {
 
     # Capture focus-in
     $$self{_GUI}{_VTE}->signal_connect('focus_in_event' => sub {
+        if($$self{_CFG}{environments}{$$self{_UUID}}{'send string only when idle'}) {
+            $self->_startSendStringTimeout();
+        }
         if ($$self{_CFG}{defaults}{'change main title'}) {
             $$self{_NOTEBOOKWINDOW}->set_title("@{[__($$self{_TITLE})]}  - $APPNAME");
         }
@@ -979,237 +1069,135 @@ sub _setupCallbacks {
     # Capture keypresses on VTE
     $$self{_GUI}{_VTE}->signal_connect('key_press_event' => sub {
         my ($widget, $event) = @_;
+        my ($action, $keymask);
 
-        my $keyval = Gtk3::Gdk::keyval_name($event->keyval) // '';
-        my $unicode = Gtk3::Gdk::keyval_to_unicode($event->keyval); # 0 if not a character
-        my $state = $event->get_state();
-        my $shift = $state * ['shift-mask'];
-        my $ctrl = $state * ['control-mask'];
-        my $alt = $state * ['mod1-mask'];
-        my $alt2 = $state * ['mod2-mask'];
-        my $alt5 = $state * ['mod5-mask'];
-
-        if ($$self{_VERBOSE}) {
-            print STDERR "DEBUG:TERMINAL:KEYPRESS:*$state*$keyval*$unicode*$shift*$ctrl*$alt*$alt2*$alt5*\n";
+        if($$self{_CFG}{environments}{$$self{_UUID}}{'send string only when idle'}) {
+            $self->_startSendStringTimeout();
         }
 
         if (defined $$self{_KEYS_RECEIVE}) {
             return 1;
         }
 
-        # ENTER --> reconnect if disconnected
-        if ((($keyval eq 'Return') || ($keyval eq 'KP_Enter')) && (! $$self{CONNECTED} && ! $$self{CONNECTING})) {
-            $self->start;
-            return 1;
-        } elsif (($keyval eq 'Return') || ($keyval eq 'KP_Enter')) {
-            $$self{_INTRO_PRESS} = 1;
+        if ($$self{_TABBED}) {
+            ($action, $keymask) = $PACMain::FUNCS{_KEYBINDS}->GetAction('pactabs', $widget, $event, $$self{_UUID});
+            if ($action eq 'close') {
+                $self->stop(undef, 1);
+                return 1;
+            }
         }
-
-        # F11 --> [un]fullscreen window
-        if (($keyval eq 'F11') && (! $$self{_CFG}{defaults}{'prevent F11'})) {
+        ($action, $keymask) = $PACMain::FUNCS{_KEYBINDS}->GetAction('terminal', $widget, $event, $$self{_UUID}, $$self{VTE_EMULATION});
+        if ($$self{VTE_EMULATION} && $action eq 'fkey') {
+            _vteFeedChild($$self{_GUI}{_VTE}, $keymask);
+            return 1;
+        }
+        if (!$action) {
+            return 0;
+        } elsif ($action eq 'Return' && !$$self{CONNECTED} && !$$self{CONNECTING}) {
+            # Only consider "RETURN" if disconnected ; otherwise do not consider it as an action
+            $self->start();
+        } elsif ($action eq 'start') {
+            if (!$$self{CONNECTED} && !$$self{CONNECTING}) {
+                $self->start();
+            }
+        } elsif ($action eq 'fullscreen') {
             if ($$self{_FULLSCREEN}) {
-                $$self{_FSTOTAB} and $self->_winToTab;
+                $$self{_FSTOTAB} and $self->_winToTab();
                 $$self{_GUI}{_VBOX}->get_window()->unfullscreen();
                 $$self{_FULLSCREEN} = 0;
             } else {
                 $$self{_FSTOTAB} = $$self{_TABBED};
-                $$self{_TABBED} and $self->_tabToWin;
+                $$self{_TABBED} and $self->_tabToWin();
                 $$self{_GUI}{_VBOX}->get_window()->fullscreen();
                 $$self{_FULLSCREEN} = 1;
             }
-            return 1;
-        }
-
-        # Capture only keypresses with modifiers (ctrl, alt, etc.)
-
-        ############################################
-        # Generic VTE keystrokes
-
-        # <Shift><Ctrl><Alt>
-        if (($ctrl && $alt && $shift) && (! $$self{_CFG}{environments}{$$self{_UUID}}{'terminal options'}{'disable CTRL key bindings'})  && (! $$self{_CFG}{environments}{$$self{_UUID}}{'terminal options'}{'disable ALT key bindings'}) && (! $$self{_CFG}{environments}{$$self{_UUID}}{'terminal options'}{'disable SHIFT key bindings'})) {
-            # X --> Reset terminal
-            if (lc $keyval eq 'x') {
-                $$self{_GUI}{_VTE}->reset(1, 1);
-                return 1;
-            }
-        }
-        # <Ctrl><Alt>
-        elsif (($ctrl && $alt) && (! $$self{_CFG}{environments}{$$self{_UUID}}{'terminal options'}{'disable CTRL key bindings'})  && (! $$self{_CFG}{environments}{$$self{_UUID}}{'terminal options'}{'disable ALT key bindings'})) {
-            # r --> remove from cluster
-            if (lc $keyval eq 'r') {
-                $PACMain::FUNCS{_CLUSTER}->delFromCluster($$self{_UUID_TMP}, $$self{_CLUSTER});
-                return 1;
-            }
-        }
-        # <Ctrl><Shift>
-        if (($ctrl && $shift) && (! $$self{_CFG}{environments}{$$self{_UUID}}{'terminal options'}{'disable CTRL key bindings'})  && (! $$self{_CFG}{environments}{$$self{_UUID}}{'terminal options'}{'disable SHIFT key bindings'})) {
-            # C --> COPY
-            if (lc $keyval eq 'c') {
-                $$self{_GUI}{_VTE}->copy_clipboard;
-                return 1;
-            }
-            # V --> PASTE
-            elsif (lc $keyval eq 'v') {
-                my $txt = $$self{_GUI}{_VTE}->get_clipboard(Gtk3::Gdk::Atom::intern_static_string('PRIMARY'))->wait_for_text();
-                $self->_pasteToVte($txt, $$self{_CFG}{'environments'}{$$self{_UUID}}{'send slow'});
-                return 1;
-            }
-            # P --> PASTE CONNECTION PASSWORD
-            elsif ($$self{_CFG}{environments}{$$self{_UUID}}{'pass'} ne '' && lc $keyval eq 'p') {
-                $self->_pasteConnectionPassword();
-                return 1;
-            }
-            # B --> PASTE AND DELETE
-            elsif (lc $keyval eq 'b')
-            {
-                my $text = $$self{_GUI}{_VTE}->get_clipboard(Gtk3::Gdk::Atom::intern_static_string('PRIMARY'))->wait_for_text();
-                my $delete = _wEnterValue(
-                    $$self{_GUI},
-                    "Enter the String/RegExp of text to be *deleted* when pasting.\nUseful for, for example, deleting 'carriage return' from the text before pasting it.",
-                    'Use string or Perl RegExps (ex: \n means "carriage return")',
-                    '\n|\f|\r'
-                ) or return 1;
-                $text =~ s/$delete//g;
-                $self->_pasteToVte($text, $$self{_CFG}{'environments'}{$$self{_UUID}}{'send slow'} || 1);
-                return 1;
-            }
-            # X --> Reset terminal
-            elsif (lc $keyval eq 'x') {
-                $$self{_GUI}{_VTE}->reset(1, 0);
-                return 1;
-            }
-            # g --> Guess hostname and set as title
-            elsif (lc $keyval eq 'g') {
-                ($$self{CONNECTED} && ! $$self{CONNECTING}) and $self->_execute('remote', '<CTRL_TITLE:hostname>', undef, undef, undef);
-                return 1;
-            }
-            # w --> Close terminal
-            elsif (lc $keyval eq 'w') {
-                $self->stop(undef, 1);
-                return 1;
-            }
-            # q --> Close PAC
-            elsif (lc $keyval eq 'q') {
-                $PACMain::FUNCS{_MAIN}->_quitProgram;
-                return 1;
-            }
-            # f --> FIND in treeView
-            elsif (lc $keyval eq 'f')
-            {
-                $PACMain::FUNCS{_MAIN}->_showConnectionsList(0);
-                $PACMain::FUNCS{_MAIN}{_GUI}{_vboxSearch}->show();
-                $PACMain::FUNCS{_MAIN}{_GUI}{_entrySearch}->grab_focus();
-                return 1;
-            }
-            # 6 --> Send a Cisco interrupt keypress
-            elsif ($unicode eq 38)
-            {
-                _vteFeedChildBinary($$self{_GUI}{_VTE}, "\c^x");
-                #_vteFeedChildBinary($$self{_GUI}{_VTE}, "\c^");
-                #_vteFeedChildBinary($$self{_GUI}{_VTE}, "\c]");
-                _vteFeedChildBinary($$self{_GUI}{_VTE}, chr(30) . 'x');
-                return 1;
-            }
-            # F4 --> CLOSE *ALL* opened tabs
-            elsif (($self->{_TABBED}) and ($keyval eq 'F4'))
-            {
-                $self->_closeAllTerminals();
-                return 1;
-            }
-            # n --> Close disconnected sessions
-            elsif (lc $keyval eq 'n') {
-                $self->_closeDisconnectedTerminals();
-                return 1;
-            }
-            # d --> duplicate connection
-            elsif (lc $keyval eq 'd') {
-                my $terminals = $PACMain::FUNCS{_MAIN}->_launchTerminals([[$$self{_UUID}]]);
-                $$self{_NOTEBOOK}->reorder_child ($$terminals[0]->{_GUI}{_VBOX}, $$self{_NOTEBOOK}->page_num($$self{_GUI}{_VBOX}) + 1);
-                return 1;
-            }
-            # f --> Find in history
-            #elsif (lc $keyval eq 'f') {
-                #if ($$self{_CFG}{'defaults'}{'record command history'}) {
-                    #$self->_wHistory;
-                #}
-                #return 1;
-            #}
-            # r --> Disconnect and Restart session
-            elsif (lc $keyval eq 'r') {
+        } elsif ($action eq 'disconnect') {
+            $self->_disconnectTerminal();
+        } elsif ($action eq 'sftp') {
+            $self->_openSFTP()
+        } elsif ($action eq 'reset') {
+            $$self{_GUI}{_VTE}->reset(1, 0);
+        } elsif ($action eq 'reset-clear') {
+            $$self{_GUI}{_VTE}->reset(1, 1);
+        } elsif ($action eq 'remove_from_cluster') {
+            $PACMain::FUNCS{_CLUSTER}->delFromCluster($$self{_UUID_TMP}, $$self{_CLUSTER});
+        } elsif ($action eq 'copy') {
+            $$self{_GUI}{_VTE}->copy_clipboard();
+        } elsif ($action eq 'paste') {
+            $$self{_GUI}{_VTE}->paste_clipboard();
+        } elsif ($action eq 'paste-primary') {
+            $$self{_GUI}{_VTE}->paste_primary();
+        } elsif ($action eq 'paste-passwd' && ($$self{_CFG}{environments}{$$self{_UUID}}{'pass'} ne '' || $$self{_CFG}{environments}{$$self{_UUID}}{'passphrase'} ne '')) {
+            $self->_pasteConnectionPassword();
+        } elsif ($action eq 'paste-delete') {
+            my $text = $$self{_GUI}{_VTE}->get_clipboard(Gtk3::Gdk::Atom::intern_static_string('CLIPBOARD'))->wait_for_text();
+            my $delete = _wEnterValue(
+                $$self{_PARENTWINDOW},
+                "Enter the String/RegExp of text to be *deleted* when pasting.\nUseful for, for example, deleting 'carriage return' from the text before pasting it.",
+                'Use string or Perl RegExps (ex: \n means "carriage return")',
+                '\n|\f|\r'
+            ) or return 1;
+            $text =~ s/$delete//g;
+            _vteFeedChild($$self{_GUI}{_VTE}, $text);
+        } elsif ($action eq 'hostname') {
+            ($$self{CONNECTED} && !$$self{CONNECTING}) and $self->_execute('remote', '<CTRL_TITLE:hostname>', undef, undef, undef);
+        } elsif ($action eq 'close') {
+            $self->stop(undef, 1);
+        } elsif ($action eq 'quit') {
+            $PACMain::FUNCS{_MAIN}->_quitProgram;
+        } elsif ($action eq 'find') {
+            $PACMain::FUNCS{_MAIN}->_showConnectionsList(0);
+            $PACMain::FUNCS{_MAIN}{_GUI}{_vboxSearch}->show();
+            $PACMain::FUNCS{_MAIN}{_GUI}{_entrySearch}->grab_focus();
+        } elsif ($action eq 'closealltabs') {
+            $self->_closeAllTerminals();
+        } elsif ($action eq 'close-disconected') {
+            $self->_closeDisconnectedTerminals();
+        } elsif ($action eq 'duplicate') {
+            my $terminals = $PACMain::FUNCS{_MAIN}->_launchTerminals([[$$self{_UUID}]]);
+            $$self{_NOTEBOOK}->reorder_child ($$terminals[0]->{_GUI}{_VBOX}, $$self{_NOTEBOOK}->page_num($$self{_GUI}{_VBOX}) + 1);
+        } elsif ($action eq 'restart') {
+            if ($$self{CONNECTED} || $$self{CONNECTING}) {
                 $self->_disconnectAndRestartTerminal();
-                return 1;
+            } else {
+                $self->start();
             }
-            # i --> Show the information tab
-            elsif (lc $keyval eq 'i') {
-                $self->_showInfoTab();
-                return 1;
+        } elsif ($action eq 'infotab') {
+            $self->_showInfoTab();
+        } elsif ($action eq 'find-terminal') {
+            _wFindInTerminal($self);
+        } elsif ($action eq 'showconnections') {
+            $PACMain::FUNCS{_MAIN}->_toggleConnectionsList();
+        } elsif ($action eq 'edit_node') {
+            if (not $$self{_UUID} eq '__PAC_SHELL__') {
+                $PACMain::FUNCS{_EDIT}->show($$self{_UUID});
             }
-
-            # Test Zooming actions
-            if ($self->_zoomHandler($keyval)) {
-                return 1;
+        } elsif ($action =~ /zoom/) {
+            $self->_zoomHandler($action);
+        } elsif ($action =~ /HOTKEY_CMD:(\w+)/) {
+            my $where = $1;
+            my ($ask, $cmd) = $PACMain::FUNCS{_KEYBINDS}->GetHotKeyCommand('terminal', $keymask, $$self{_UUID});
+            if (!$cmd) {
+                return 0;
             }
-        }
-        # <Ctrl>
-        elsif ($ctrl && (! $$self{_CFG}{environments}{$$self{_UUID}}{'terminal options'}{'disable CTRL key bindings'})) {
-            # F4 --> CLOSE current tab
-            if (($self->{_TABBED}) and ($keyval eq 'F4')) {
-                $self->stop(undef, 1);
-                return 1;
-            }
-
-            # F3 --> FIND in text buffer
-            if ($keyval eq 'F3') {
-                _wFindInTerminal($self);
-                return 1;
-            }
-
-            # <ins> --> COPY
-            if ($keyval eq 'Insert') {
-                $$self{_GUI}{_VTE}->copy_clipboard;
-                return 1;
-            }
-
-            # Test Zooming actions
-            if ($self->_zoomHandler($keyval)) {
-                return 1;
-            }
-        }
-        # <Shift>
-        elsif ($shift && (! $$self{_CFG}{environments}{$$self{_UUID}}{'terminal options'}{'disable SHIFT key bindings'})) {
-            # <ins> --> PASTE
-            if ($keyval eq 'Insert') {
-                $$self{_GUI}{_VTE}->paste_primary();
-                return 1;
-            }
-        }
-        # <Alt>
-        elsif ($alt && (!$$self{_CFG}{environments}{$$self{_UUID}}{'terminal options'}{'disable ALT key bindings'})) {
-            # c | n --> Show main connections window
-            if ((lc $keyval eq 'c') || (lc $keyval eq 'n')) {
-                if (! $$self{_TABBED} || ! $$self{_CFG}{defaults}{'tabs in main window'}) {
-                    $PACMain::FUNCS{_MAIN}->_showConnectionsList();
-                } else {
-                    $PACMain::FUNCS{_MAIN}->_toggleConnectionsList();
+            if ($where eq 'local') {
+                $self->_execute('local', $cmd, $ask);
+            } else {
+                my $ok = $self->_execute('remote', $cmd, $ask, 1, 0, 0);
+                if (($$self{_CLUSTER})&&($ok)) {
+                    $self->_clusterCommit(undef, $cmd, undef);
                 }
-                return 1;
             }
-            # e --> Show main edit connection window
-            if (lc $keyval eq 'e') {
-                if (not $$self{_UUID} eq '__PAC_SHELL__') {
-                    $PACMain::FUNCS{_EDIT}->show($$self{_UUID});
-                }
-                return 1;
-            }
-            # h --> Show command history window
-            #if (lc $keyval eq 'h') {
-                #if ($$self{_CFG}{'defaults'}{'record command history'}) {
-                    #$self->_wHistory;
-                #}
-                #return 1;
-            #}
+        } elsif ($action eq 'cisco') {
+            _vteFeedChildBinary($$self{_GUI}{_VTE}, "\c^x");
+            #_vteFeedChildBinary($$self{_GUI}{_VTE}, "\c^");
+            #_vteFeedChildBinary($$self{_GUI}{_VTE}, "\c]");
+            _vteFeedChildBinary($$self{_GUI}{_VTE}, chr(30) . 'x');
+            return 1;
+        } else {
+            return 0;
         }
-        return 0;
+        return 1;
     });
 
     # Right mouse click on VTE
@@ -1218,15 +1206,14 @@ sub _setupCallbacks {
             return 0;  # Bubble up, let VTE's original handler take care of it.
         }
         my ($widget, $event) = @_;
-        my $state = $event->get_state;
+        my $state = $event->get_state();
         my $shift = $state * ['shift-mask'];
 
         if ($event->button eq 2) {
             if (!$$self{_CFG}{'environments'}{$$self{_UUID}}{'send slow'}) {
                 return 0;
             }
-            my $txt = $$self{_GUI}{_VTE}->get_clipboard(Gtk3::Gdk::Atom::intern_static_string('PRIMARY'))->wait_for_text();
-            $self->_pasteToVte($txt, $$self{_CFG}{'environments'}{$$self{_UUID}}{'send slow'});
+            $$self{_GUI}{_VTE}->paste_primary();
             $$self{FOCUS}->child_focus('GTK_DIR_TAB_FORWARD');
             return 1;
         } elsif ($event->button eq 3 and $event -> type eq 'button-press') {
@@ -1237,7 +1224,8 @@ sub _setupCallbacks {
                 $handled_by_vte = $$self{_GUI}{_VTE}->event($event);
                 $right_click_deep = 0;
             }
-            if (! $handled_by_vte) {
+            if (!$handled_by_vte) {
+                $$self{FOCUS}->child_focus('GTK_DIR_TAB_FORWARD');
                 $self->_vteMenu($event);
             }
             return 1;  # One way or another, we've handled it.
@@ -1253,7 +1241,10 @@ sub _setupCallbacks {
                 $$self{_GUI}{_VTE}->copy_clipboard();
                 my $txt = $$self{_GUI}{_VTE}->get_clipboard(Gtk3::Gdk::Atom::intern_static_string('PRIMARY'))->wait_for_text();
                 $txt =~ s/ +$//gm;
-                Gtk3::Clipboard::get(Gtk3::Gdk::Atom::intern('CLIPBOARD',0))->set_text($txt, length($txt));
+                use bytes;
+                my $blen = length($txt);
+                no bytes;
+                Gtk3::Clipboard::get(Gtk3::Gdk::Atom::intern('CLIPBOARD', 0))->set_text($txt, $blen);
             }
         }
         return 0;
@@ -1261,24 +1252,30 @@ sub _setupCallbacks {
     $$self{_GUI}{_VTE}->signal_connect('commit' => sub {
         $self->_clusterCommit(@_);
     });
-    $$self{_GUI}{_VTE}->signal_connect('cursor_moved' => sub {$$self{_NEW_DATA} = 1; $self->_setTabColour();});
+    $$self{_GUI}{_VTE}->signal_connect('cursor_moved' => sub {
+        $$self{_NEW_DATA} = 1;
+        if($$self{_CFG}{environments}{$$self{_UUID}}{'send string only when idle'}) {
+            $self->_startSendStringTimeout();
+        }
+        $self->_setTabColour();
+    });
 
     # Capture Drag and Drop events
     my @targets = (Gtk3::TargetEntry->new('Ásbrú Connect', [], 0));
     $$self{_GUI}{_VTE}->drag_dest_set('GTK_DEST_DEFAULT_ALL', \@targets, ['move']);
     $$self{_GUI}{_VTE}->signal_connect('drag_drop' => sub {
         if (!$$self{CONNECTED}) {
-            _wMessage($$self{_WINDOWTERMINAL}, "This terminal is <b>DISCONNECTED</b>.\nPlease, start the connection before trying to <b>chain</b>.", 1);
+            _wMessage($$self{_PARENTWINDOW}, "This terminal is <b>DISCONNECTED</b>.\nPlease, start the connection before trying to <b>chain</b>.", 1);
             return 0;
         } elsif ($$self{CONNECTING}) {
-            _wMessage($$self{_WINDOWTERMINAL}, "Please, <b>WAIT for current chain to finish</b> before starting a new one.", 1);
+            _wMessage($$self{_PARENTWINDOW}, "Please, <b>WAIT for current chain to finish</b> before starting a new one.", 1);
             return 0;
         } elsif ($$self{CONNECTED} && (scalar @{$PACMain::{FUNCS}{_MAIN}{'DND'}{'selection'}} == 1)) {
             my $sel = shift @{$PACMain::{FUNCS}{_MAIN}{'DND'}{'selection'}};
             my $name = $$self{_CFG}{environments}{$sel}{name};
             my $title = $$self{_CFG}{environments}{$sel}{title};
             if (!$self->_wSelectChain($sel)) {
-                _wMessage($$self{_WINDOWTERMINAL}, "No '<b>Expect/Send</b>' data available in:\n<b>$name ($title)</b>\nSo, there are <b>no commands to chain</b>");
+                _wMessage($$self{_PARENTWINDOW}, "No '<b>Expect/Send</b>' data available in:\n<b>$name ($title)</b>\nSo, there are <b>no commands to chain</b>");
             }
             if ($$self{_FOCUSED}) {
                 $$self{FOCUS}->child_focus('GTK_DIR_TAB_FORWARD');
@@ -1292,7 +1289,7 @@ sub _setupCallbacks {
         }
     });
     $$self{_GUI}{_VTE}->signal_connect('drag_motion' => sub {
-        $_[0]->get_parent_window->raise; return 1;
+        $_[0]->get_parent_window()->raise(); return 1;
     });
 
     # Depending on terminal creation (window/tab), process connection closing differently
@@ -1306,9 +1303,9 @@ sub _setupCallbacks {
         });
     }
 
-    # If embedded, add a callback for the 'get focus' button
+    # If embedded, add some more callback to manage keyboard focus and messages window
     if ($$self{EMBED}) {
-        $$self{_GUI}{_BTNFOCUS}->signal_connect ('clicked' => sub {
+        $$self{_GUI}{_BTNFOCUS}->signal_connect('clicked' => sub {
             if (defined $$self{FOCUS}) {
                 $$self{FOCUS}->child_focus('GTK_DIR_TAB_FORWARD');
             }
@@ -1321,6 +1318,12 @@ sub _setupCallbacks {
                 # Messages (in Vte) were not shown; show them now, and hide the actual embed window
                 $self->_showEmbedMessages();
             }
+        });
+        $$self{_GUI}{_SOCKET_PARENT_WINDOW}->signal_connect('enter-notify-event' => sub {
+            if (defined $$self{FOCUS}) {
+                $$self{FOCUS}->child_focus('GTK_DIR_TAB_FORWARD');
+            }
+            return 0;
         });
     }
 
@@ -1345,6 +1348,11 @@ sub _setupCallbacks {
             $$self{_GUI}{pb}->destroy();
         }
 
+        if (!defined $$self{_UUID}) {
+            # Signal received too late, terminal is already closed
+            return;
+        }
+
         $PACMain::RUNNING{$$self{'_UUID_TMP'}}{'stop_time'} = time();
         $PACMain::FUNCS{_STATS}->stop($$self{_UUID});
 
@@ -1353,7 +1361,14 @@ sub _setupCallbacks {
         $$self{CONNECTED} = 0;
         $$self{CONNECTING} = 0;
 
-        my $string = $$self{_CFG}{'environments'}{$$self{_UUID}}{'method'} eq 'generic' ? "EXECUTION FINISHED (PRESS <ENTER> TO EXECUTE AGAIN)" : "DISCONNECTED (PRESS <ENTER> TO RECONNECT)";
+        # Show a "reconnect" message
+        my $string = "DISCONNECTED (PRESS <ENTER> TO RECONNECT)";
+        if (!defined($$self{_CFG}{'environments'}{$$self{_UUID}}{'method'})) {
+            # Likely the session has been deleted from 'environments', there is no way to restart this session
+            $string = "THIS CONNECTION IS NOT AVAILABLE ANYMORE";
+        } elsif ($$self{_CFG}{'environments'}{$$self{_UUID}}{'method'} eq 'generic') {
+            $string = "EXECUTION FINISHED (PRESS <ENTER> TO EXECUTE AGAIN)";
+        }
         if (defined $$self{_GUI}{_VTE}) {
             _vteFeed($$self{_GUI}{_VTE}, "\r\n${COL_RED}$string (" . (localtime(time)) . ")${COL_RESET}\r\n\n");
         }
@@ -1363,22 +1378,16 @@ sub _setupCallbacks {
             $self->_showEmbedMessages();
         }
 
-        if (defined $$self{_SOCKET_CLIENT}) {
-            $$self{_SOCKET_CLIENT}->close();
-        }
         if (defined $$self{_SOCKET_CLIENT_EXEC}) {
             $$self{_SOCKET_CLIENT_EXEC}->close();
         }
         if (defined $$self{_SEND_STRING}) {
             eval {
                 Glib::Source->remove($$self{_SEND_STRING});
+                undef $$self{_SEND_STRING};
             };
         }
-        if (defined $$self{_EMBED_KIDNAP}) {
-            eval {
-                Glib::Source->remove($$self{_EMBED_KIDNAP});
-            };
-        }
+        $self->_stopEmbedKidnapTimeout();
 
         # _SOCKET_CLIENT is close so no more watch to expect
         undef $$self{_SOCKET_CLIENT_WATCH};
@@ -1390,15 +1399,21 @@ sub _setupCallbacks {
         $PACMain::FUNCS{_CLUSTER}->_updateGUI();
 
         if ($$self{_SPLIT} && $$self{_CFG}{'defaults'}{'unsplit disconnected terminals'}) {
-            $self->_unsplit;
+            $self->_unsplit();
         }
 
         $$self{_PID} = 0;
 
-        if (($$self{_RESTART})&&($$self{_RECONNECTS}<4)) {
-            sleep($$self{_RECONNECTS});
+        # Do retry on disconnect
+        if ($$self{_RESTART} && $$self{_RECONNECTS} < $$self{_CFG}{'defaults'}{'max retry on disconnect'}) {
+            if (!defined $$self{_RECONNECT_WAIT_TIME}) {
+                # Using a list of prime numbers to wait more after each retry
+                # (see http://neilk.net/blog/2000/06/01/abigails-regex-to-test-for-prime-numbers/)
+                @{$$self{_RECONNECT_WAIT_TIME}} = grep { $_ if (1 x $_) !~ /^1?$|^(11+?)\1+$/ } 1..500;
+            }
+            sleep($$self{_RECONNECT_WAIT_TIME}[min(@{$$self{_RECONNECT_WAIT_TIME}}, $$self{_RECONNECTS})]);
             $$self{_RECONNECTS}++;
-            $self->start;
+            $self->start();
         } else {
             # Check for post-connection commands execution
             $self->_wPrePostExec('local after');
@@ -1425,7 +1440,7 @@ sub _watchConnectionData {
     }
 
     # This should be as fast as possible, since we are called from a 'data-in' callback from the client socket
-    $self->_receiveData;
+    $self->_receiveData();
 
     while (my $data = shift(@{$self->{_SOCKET_BUFFER}})) {
         $data = decode('UTF-16', $data);
@@ -1433,7 +1448,7 @@ sub _watchConnectionData {
         if ($data eq 'CONNECTED') {
             $$self{_GUI}{statusIcon}->set_from_stock('asbru-terminal-ok-small', 'button');
             $$self{_GUI}{statusIcon}->set_tooltip_text('Connected');
-            $$self{_GUI}{statusExpect}->clear;
+            $$self{_GUI}{statusExpect}->clear();
             $$self{CONNECTED} = 1;
             $$self{CONNECTING} = 0;
             $$self{_BADEXIT} = 0;
@@ -1448,32 +1463,29 @@ sub _watchConnectionData {
             $self->_updateCFG();
             $data = $self->_checkSendKeystrokes($data);
 
-            if (defined $$self{_EMBED_KIDNAP}) {
-                eval {
-                    Glib::Source->remove($$self{_EMBED_KIDNAP});
-                };
-            }
+            $self->_stopEmbedKidnapTimeout();
             if ($$self{EMBED} && ($$self{_CFG}{environments}{$$self{_UUID}}{method} eq 'RDP (xfreerdp)' || $$self{_CFG}{environments}{$$self{_UUID}}{method} eq 'VNC')) {
                 $$self{_EMBED_KIDNAP} = Glib::Timeout->add(500, sub {
                     my $title = 'FreeRDP: ' . $$self{_CFG}{environments}{$$self{_UUID}}{ip} . ($$self{_CFG}{environments}{$$self{_UUID}}{port} == 3389 ? '' : ":$$self{_CFG}{environments}{$$self{_UUID}}{port}");
                     $title = $$self{_CFG}{environments}{$$self{_UUID}}{method} eq 'RDP (xfreerdp)' ?
                     "FreeRDP: $$self{_CFG}{environments}{$$self{_UUID}}{ip}" . ($$self{_CFG}{environments}{$$self{_UUID}}{port} == 3389 ? '' : ":$$self{_CFG}{environments}{$$self{_UUID}}{port}") :
                     "TightVNC: $$self{_CFG}{environments}{$$self{_UUID}}{user}";
-                    my $list = _getXWindowsList;
+                    my $list = _getXWindowsList();
                     if (grep({$_ =~ /$title/ and $title = $_;} keys %{$$list{'by_name'}})) {
                         $$self{_GUI}{_SOCKET}->add_id($$list{'by_name'}{$title}{'xid'});
                     }
+                    $$self{_EMBED_KIDNAP} = undef;
                     return 0;
                 });
             }
 
-            # Show embed window and hide messages
+            # Check that the embed window is ready and hide messages window accordingly
             if ($$self{EMBED}) {
-                $self->_hideEmbedMessages();
+                $self->_checkEmbedWindow();
             }
 
         } elsif ($data =~ /^EXPLORER:(.+)/go) {
-            system("xdg-open '$1' &");
+            system("$ENV{'ASBRU_ENV_FOR_EXTERNAL'} xdg-open '$1' &");
         } elsif ($data =~ /^PIPE_WAIT\[(.+?)\]\[(.+)\]/go) {
             my $time = $1;
             my $prompt = $2;
@@ -1494,7 +1506,12 @@ sub _watchConnectionData {
                 }
             });
         } elsif ($data =~ /^SCRIPT_(START|STOP)\[NAME:(.+)\]/go) {
-            $$self{_PULSE_TIMER} = Glib::Timeout->add (100, sub {defined $$self{_GUI}{pb} and $$self{_GUI}{pb}->pulse; return $$self{_PULSE};});
+            $$self{_PULSE_TIMER} = Glib::Timeout->add (100, sub {
+                if (defined $$self{_GUI}{pb}) {
+                    $$self{_GUI}{pb}->pulse();
+                }
+                return $$self{_PULSE};
+            });
         }
         elsif ($data =~ /^SCRIPT_(START|STOP)\[NAME:(.+)\]/go) {
             my ($status, $name) = ($1, $2);
@@ -1528,10 +1545,15 @@ sub _watchConnectionData {
             my ($func, $name, $params) = ($1, $2, $3);
             $data = "Ásbrú Script '$name' --> $func($params)";
         } elsif ($data =~ /^TITLE:(.+)/go) {
-            $$self{_TITLE} = $1;
-            $self->_updateCFG();
+            my $t = $1;
+            if ($t !~ /<\w+:.+?>/) {
+                $$self{_TITLE} = $t;
+                $self->_updateCFG();
+            }
+        } elsif ($data =~ /^GET_TITLE:/go) {
+            $self->_sendData("GET_TITLE|:|$$self{_TITLE}");
         } elsif ($data =~ /^PAC_CONN_MSG:(.+)/go) {
-            _wMessage($$self{_WINDOWTERMINAL}, $1, 1);
+            _wMessage($$self{_PARENTWINDOW}, $1, 1);
             next;
         } elsif ($data eq 'RESTART') {
             $$self{_RESTART} = 1;
@@ -1553,9 +1575,12 @@ sub _watchConnectionData {
             select($rin, undef, undef, 2) or return 1;
             $$self{_EXEC}{RECEIVED} = undef;
             eval {$$self{_EXEC}{RECEIVED} = ${fd_retrieve($$self{_SOCKET_CLIENT_EXEC})};};
-            if ($@) {_wMessage($$self{_WINDOWTERMINAL}, "ERROR: Could not retrieve output from command execution:\n$@"); return 1;}
+            if ($@) {_wMessage($$self{_PARENTWINDOW}, "ERROR: Could not retrieve output from command execution:\n$@"); return 1;}
             if (defined $$self{_EXEC}{RECEIVED}) {
-                $$self{_EXEC_PROCESS} = Glib::Timeout->add(100, sub {$self->_pipeExecOutput; return 0;});
+                $$self{_EXEC_PROCESS} = Glib::Timeout->add(100, sub {
+                    $self->_pipeExecOutput();
+                    return 0;
+                });
             }
         } elsif ($data =~ /^SENDSLOW:(.+)/go) {
             my $txt = $1;
@@ -1576,15 +1601,13 @@ sub _watchConnectionData {
                 }
             });
         } elsif (($data eq 'DISCONNECTED') || ($data =~ /^CLOSE:.+/go) || ($data =~ /^TIMEOUT:.+/go) || ($data =~ /^connect\(\) failed with error '.+'$/go)) {
-            if (defined $$self{_EMBED_KIDNAP}) {
-                Glib::Source->remove($$self{_EMBED_KIDNAP});
-            }
+            $self->_stopEmbedKidnapTimeout();
             if ($$self{EMBED}) {
                 $self->_showEmbedMessages();
             }
             $$self{_GUI}{statusExpect}->clear;
             $$self{_BADEXIT} = $$self{CONNECTING};
-            $$self{_PID} and kill(15, $$self{_PID});
+            $self->_disconnectTerminal();
         } elsif ($data =~ /^EXPECT:WAITING:(.+)/go) {
             $$self{_GUI}{statusExpect}->set_from_stock('gtk-media-play', 'button');
             $$self{_GUI}{statusExpect}->set_tooltip_text("Expecting '$1'");
@@ -1602,11 +1625,11 @@ sub _watchConnectionData {
             }
         } elsif ($data =~ /^WENTER\|/) {
             $PACMain::FUNCS{_MAIN}{_HAS_FOCUS} = '';
-            my ($cmd,$lblup,$lbldown,$default,$visible) = split /\|:\|/,$data;
-            my ($val,$pos) = _wEnterValue($$self{_WINDOWTERMINAL},$lblup,$lbldown,$default,$visible);
-            $PACMain::FUNCS{_MAIN}{_HAS_FOCUS} = $$self{_WINDOWTERMINAL};
+            my ($cmd, $lblup, $lbldown, $default, $visible) = split /\|:\|/, $data;
+            my ($val, $pos) = _wEnterValue($$self{_PARENTWINDOW}, $lblup, $lbldown, $default, $visible);
             if (defined $$self{_WINDOWTERMINAL}) {
                 $$self{_WINDOWTERMINAL}->grab_focus();
+                $PACMain::FUNCS{_MAIN}{_HAS_FOCUS} = $$self{_WINDOWTERMINAL};
             }
             $self->_sendData("WENTER|:|$val|:|$pos");
         }
@@ -1692,6 +1715,14 @@ sub _vteMenu {
 
     my @vte_menu_items;
 
+    push(@vte_menu_items, {
+        label => "Show Terminal Keybindings",
+        stockicon => 'gtk-help',
+        sensitive => 1,
+        code => sub {
+            _wMessage($$self{_PARENTWINDOW}, $PACMain::FUNCS{_KEYBINDS}->ListKeyBindings('terminal'), 1, 0, 'w-info');
+        }
+    });
     # If PAC Script running, show a STOP script menuitem
     if ($$self{_SCRIPT_STATUS} ne 'STOP') {
         push(@vte_menu_items,
@@ -1699,7 +1730,9 @@ sub _vteMenu {
             label => "Stop script '$$self{_SCRIPT_NAME}'",
             stockicon => 'gtk-media-stop',
             sensitive => 1,
-            code => sub {kill(15, $$self{_PID});}
+            code => sub {
+                $self->_disconnectTerminal();
+            }
         });
 
         _wPopUpMenu(\@vte_menu_items, $event);
@@ -1723,7 +1756,11 @@ sub _vteMenu {
                     stockicon => 'asbru-treelist',
                     submenu =>
                     [
-                        {label => 'Local Shell', stockicon => 'gtk-home', code => sub {$PACMain::FUNCS{_MAIN}{_GUI}{shellBtn}->clicked;}},
+                        {
+                            label => 'Local Shell', stockicon => 'gtk-home', code => sub {
+                                $PACMain::FUNCS{_MAIN}{_GUI}{shellBtn}->clicked;
+                            }
+                        },
                         {separator => 1},
                         @{_menuAvailableConnections($PACMain::FUNCS{_MAIN}{_GUI}{treeConnections}{data}, $self)}
                     ]
@@ -1751,13 +1788,17 @@ sub _vteMenu {
             {
                 label => "$i: $PACMain::RUNNING{$uuid_tmp}{terminal}{_TITLE}",
                 tooltip => "Arrange both connections ($$self{_TITLE}) and ($PACMain::RUNNING{$uuid_tmp}{terminal}{_TITLE}) into the same vertically split window.",
-                code => sub {$self->_split($uuid_tmp);}
+                code => sub {
+                    $self->_split($uuid_tmp);
+                }
             });
             push(@submenu_split_h,
             {
                 label => "$i: $PACMain::RUNNING{$uuid_tmp}{terminal}{_TITLE}",
                 tooltip => "Arrange both connections ($$self{_TITLE}) and ($PACMain::RUNNING{$uuid_tmp}{terminal}{_TITLE}) into the same horizontally split window .",
-                code => sub {$self->_split($uuid_tmp, 1);}
+                code => sub {
+                    $self->_split($uuid_tmp, 1);
+                }
             });
         }
         @submenu_split_v = sort {$$a{label} cmp $$b{label}} @submenu_split_v;
@@ -1768,8 +1809,11 @@ sub _vteMenu {
             sensitive => 1,
             label => 'Detach tab to a new Window',
             stockicon => 'gtk-fullscreen',
+            shortcut => $PACMain::FUNCS{_KEYBINDS}->GetAccelerator('terminal', 'fullscreen'),
             tooltip => 'Separate this connection window from the tabbed view, and put it in a separate window',
-            code => sub {$self->_tabToWin;}
+            code => sub {
+                $self->_tabToWin();
+            }
         });
 
         if ($$self{_SPLIT}) {
@@ -1778,14 +1822,18 @@ sub _vteMenu {
                 label => 'Unsplit',
                 stockicon => 'gtk-zoom-fit',
                 tooltip => "Remove the split view and put each connection into its own tab",
-                code => sub {$self->_unsplit;}
+                code => sub {
+                    $self->_unsplit();
+                }
             });
             push(@vte_menu_items,
             {
                 label => 'Equally resize terminals',
                 stockicon => 'gtk-zoom-fit',
                 tooltip => "Resize terminals equally",
-                code => sub {$self->_equalresize;}
+                code => sub {
+                    $self->_equalresize();
+                }
             });
         } else {
             push(@vte_menu_items,
@@ -1817,7 +1865,9 @@ sub _vteMenu {
             label => 'Attach Window to main tab bar',
             stockicon => 'gtk-leave-fullscreen',
             tooltip => 'Put this connection window into main tabbed window',
-            code => sub {_winToTab($self);}
+            code => sub {
+                _winToTab($self);
+            }
         });
         push(@vte_menu_items, {separator => 1});
     }
@@ -1829,10 +1879,9 @@ sub _vteMenu {
     {
         label => 'New Cluster...',
         stockicon => 'gtk-new',
-        shortcut => '',
         tooltip => 'Create a new cluster and put this connection in it',
         code => sub {
-            my $cluster = _wEnterValue($self, 'Enter a name for the <b>New Cluster</b>');
+            my $cluster = _wEnterValue($$self{_PARENTWINDOW}, 'Enter a name for the <b>New Cluster</b>');
             if ((! defined $cluster) || ($cluster =~ /^\s*$/go)) {
                 return 1;
             }
@@ -1853,7 +1902,9 @@ sub _vteMenu {
             label => "$cluster ($clusters{$cluster}{total} terminals connected)",
             tooltip => "Add to selected cluster, with connections:\n" . $clusters{$cluster}{connections},
             sensitive => $cluster ne $$self{_CLUSTER},
-            code => sub {$PACMain::FUNCS{_CLUSTER}->addToCluster($$self{_UUID_TMP}, $tmp);}
+            code => sub {
+                $PACMain::FUNCS{_CLUSTER}->addToCluster($$self{_UUID_TMP}, $tmp);
+            }
         });
     }
     # Add to cluster
@@ -1868,11 +1919,13 @@ sub _vteMenu {
     push(@vte_menu_items,
     {
         label => 'Remove from Cluster',
-        shortcut => '<control><alt>r',
         stockicon => 'gtk-delete',
+        shortcut => $PACMain::FUNCS{_KEYBINDS}->GetAccelerator('terminal', 'remove_from_cluster'),
         tooltip => $$self{_CLUSTER} ne '' ? "Remove this connection from cluster '$$self{_CLUSTER}'" : '',
         sensitive => $$self{_CLUSTER} ne '',
-        code => sub {$PACMain::FUNCS{_CLUSTER}->delFromCluster($$self{_UUID_TMP}, $$self{_CLUSTER});}
+        code => sub {
+            $PACMain::FUNCS{_CLUSTER}->delFromCluster($$self{_UUID_TMP}, $$self{_CLUSTER});
+        }
     });
     # Show the PCC
     push(@vte_menu_items,
@@ -1881,7 +1934,9 @@ sub _vteMenu {
         stockicon => 'gtk-justify-fill',
         sensitive => 1,
         tooltip => 'Bring up the Power Cluster Controller GUI',
-        code => sub {$PACMain::FUNCS{_PCC}->show();}
+        code => sub {
+            $PACMain::FUNCS{_PCC}->show();
+        }
     });
     push(@vte_menu_items, {separator => 1});
 
@@ -1896,7 +1951,9 @@ sub _vteMenu {
             stockicon => 'gtk-execute',
             sensitive => $$self{CONNECTED},
             tooltip => "Exec the CONNECTIONS part of '$name' in this connection",
-            code => sub {$PACMain::FUNCS{_SCRIPTS}->_execScript($name, $$self{_UUID_TMP});}
+            code => sub {
+                $PACMain::FUNCS{_SCRIPTS}->_execScript($name, $self->{_PARENTWINDOW}, $$self{_UUID_TMP});
+            }
         });
     }
     push(@vte_menu_items,
@@ -1912,7 +1969,7 @@ sub _vteMenu {
     # Organize Remote commands by groups, Join Terminal Macros they are the same
     my %hgs;
     my $lg;
-    foreach my $hash (@{$$self{_CFG}{'defaults'}{'remote commands'}},@{$self->{_CFG}{'environments'}{$$self{_UUID}}{'macros'}}) {
+    foreach my $hash (@{$$self{_CFG}{'defaults'}{'remote commands'}}, @{$self->{_CFG}{'environments'}{$$self{_UUID}}{'macros'}}) {
         my $cmd = ref($hash) ? $$hash{txt} : $hash;
         my $desc = ref($hash) ? $$hash{description} : $hash;
         my $confirm = ref($hash) ? $$hash{confirm} : 0;
@@ -1920,7 +1977,7 @@ sub _vteMenu {
         if ($cmd eq '') {
             next;
         }
-        my ($g,$d) = split /:/,$desc,2;
+        my ($g, $d) = split /:/, $desc, 2;
         if (!$d) {
             $d = $g;
             $g = 'Other???';
@@ -1931,7 +1988,7 @@ sub _vteMenu {
             tooltip => $cmd,
             stockicon => $confirm ? 'gtk-dialog-question' : '',
             code => sub {
-                my $ok = $self->_execute('remote', $cmd, $confirm,1,0,$intro);
+                my $ok = $self->_execute('remote', $cmd, $confirm, 1, 0, $intro);
                 if (($$self{_CLUSTER})&&($ok)) {
                     if ($intro) {
                         $intro = "\n";
@@ -1956,7 +2013,7 @@ sub _vteMenu {
     }
     # Push Others at the end with no group
     if ((defined $hgs{'Other???'})&&(@{$hgs{'Other???'}})) {
-        push(@cmd_remote_sub_menu,@{$hgs{'Other???'}});
+        push(@cmd_remote_sub_menu, @{$hgs{'Other???'}});
     }
     push(@vte_menu_items, {
         label => 'Remote commands',
@@ -1979,7 +2036,9 @@ sub _vteMenu {
             label => ($confirm ? 'CONFIRM: ' : '') . ($desc ? $desc : $cmd),
             tooltip => $desc ? $cmd : $desc,
             stockicon => $confirm ? 'gtk-dialog-question' : '',
-            code => sub {$self->_execute('local', $cmd, $confirm)}
+            code => sub {
+                $self->_execute('local', $cmd, $confirm);
+            }
         });
     }
     foreach my $hash (@{$$self{_CFG}{'defaults'}{'local commands'}}) {
@@ -1995,7 +2054,9 @@ sub _vteMenu {
             tooltip => $desc ? $cmd : $desc,
             sensitive => $$self{CONNECTED},
             stockicon => $confirm ? 'gtk-dialog-question' : '',
-            code => sub {$self->_execute('local', $cmd, $confirm)}
+            code => sub {
+                $self->_execute('local', $cmd, $confirm);
+            }
         });
     }
     push(@vte_menu_items,
@@ -2016,10 +2077,13 @@ sub _vteMenu {
         push(@variables_menu,
         {
             #label => "<V:$j> ($value)",
-            #code => sub {_vteFeedChild($$self{_GUI}{_VTE}, _subst("<V:$j>", $$self{_CFG}, $$self{_UUID}));}
+            #code => sub {_vteFeedChild($$self{_GUI}{_VTE}, _subst("<V:$j>", $$self{_CFG}, $$self{_UUID}, $$self{_UUID_TMP}));}
             label => __($j),
             tooltip => "$j=$value",
-            code => sub {my $t = _subst("<V:$j>", $$self{_CFG}, $$self{_UUID}); _vteFeedChild($$self{_GUI}{_VTE}, $t);}
+            code => sub {
+                my $t = _subst("<V:$j>", $$self{_CFG}, $$self{_UUID}, $$self{_UUID_TMP});
+                _vteFeedChild($$self{_GUI}{_VTE}, $t);
+            }
         });
         ++$i;
     }
@@ -2038,7 +2102,10 @@ sub _vteMenu {
         {
             label => __($var),
             tooltip => "$var=$val",
-            code => sub {my $t = _subst("<GV:$var>", $$self{_CFG}, $$self{_UUID}); _vteFeedChild($$self{_GUI}{_VTE}, $t);}
+            code => sub {
+                my $t = _subst("<GV:$var>", $$self{_CFG}, $$self{_UUID}, $$self{_UUID_TMP});
+                _vteFeedChild($$self{_GUI}{_VTE}, $t);
+            }
         });
     }
     push(@insert_menu_items,
@@ -2060,7 +2127,10 @@ sub _vteMenu {
         {
             label => __($key),
             tooltip => "$key=$value",
-            code => sub {my $t = _subst("<ENV:$key>", $$self{_CFG}, $$self{_UUID}); _vteFeedChild($$self{_GUI}{_VTE}, $t);}
+            code => sub {
+                my $t = _subst("<ENV:$key>", $$self{_CFG}, $$self{_UUID}, $$self{_UUID_TMP});
+                _vteFeedChild($$self{_GUI}{_VTE}, $t);
+            }
         });
     }
     push(@insert_menu_items,
@@ -2084,15 +2154,16 @@ sub _vteMenu {
     {
         label => 'Copy',
         stockicon => 'gtk-copy',
-        shortcut => '<control><shift>c',
-        code => sub {$$self{_GUI}{_VTE}->copy_clipboard;}
+        shortcut => $PACMain::FUNCS{_KEYBINDS}->GetAccelerator('terminal', 'copy'),
+        code => sub {
+            $$self{_GUI}{_VTE}->copy_clipboard();
+        }
     });
     # Copy Connection Password
     if (($$self{_CFG}{environments}{$$self{_UUID}}{'pass'} ne '')||($$self{_CFG}{environments}{$$self{_UUID}}{'passphrase'} ne '')) {
         push(@vte_menu_items, {
             label => 'Copy Connection Password',
             stockicon => 'gtk-copy',
-            shortcut => '',
             sensitive => $$self{CONNECTED},
             code => sub {
                 _copyPass($$self{_UUID});
@@ -2104,11 +2175,10 @@ sub _vteMenu {
     {
         label => 'Paste',
         stockicon => 'gtk-paste',
-        shortcut => '<control><shift>v',
-        sensitive => $$self{CONNECTED} && $$self{_GUI}{_VTE}->get_clipboard(Gtk3::Gdk::Atom::intern_static_string('PRIMARY'))->wait_is_text_available(),
+        shortcut => $PACMain::FUNCS{_KEYBINDS}->GetAccelerator('terminal', 'paste'),
+        sensitive => $$self{CONNECTED} && $$self{_GUI}{_VTE}->get_clipboard(Gtk3::Gdk::Atom::intern_static_string('CLIPBOARD'))->wait_is_text_available(),
         code => sub {
-            my $txt = $$self{_GUI}{_VTE}->get_clipboard(Gtk3::Gdk::Atom::intern_static_string('PRIMARY'))->wait_for_text();
-            $self->_pasteToVte($txt, $$self{_CFG}{environments}{$$self{_UUID}}{'send slow'});
+            $$self{_GUI}{_VTE}->paste_clipboard();
         }
     });
     # Paste Current Connection Password
@@ -2117,7 +2187,7 @@ sub _vteMenu {
         {
             label => 'Paste Connection Password',
             stockicon => 'gtk-paste',
-            shortcut => '<control><shift>p',
+            shortcut => $PACMain::FUNCS{_KEYBINDS}->GetAccelerator('terminal', 'paste-passwd'),
             code => sub {
                 $self->_pasteConnectionPassword();
             }
@@ -2128,37 +2198,43 @@ sub _vteMenu {
     {
         label => 'Paste and Delete...',
         stockicon => 'gtk-paste',
-        shortcut => '<control><shift>b',
+        shortcut => $PACMain::FUNCS{_KEYBINDS}->GetAccelerator('terminal', 'paste-delete'),
         tooltip => 'Paste clipboard contents, but remove any Perl RegExp matching string from the appearing prompt GUI',
-        sensitive => $$self{CONNECTED} && $$self{_GUI}{_VTE}->get_clipboard(Gtk3::Gdk::Atom::intern_static_string('PRIMARY'))->wait_is_text_available(),
+        sensitive => $$self{CONNECTED} && $$self{_GUI}{_VTE}->get_clipboard(Gtk3::Gdk::Atom::intern_static_string('CLIPBOARD'))->wait_is_text_available(),
         code => sub {
-            my $text = $$self{_GUI}{_VTE}->get_clipboard(Gtk3::Gdk::Atom::intern_static_string('PRIMARY'))->wait_for_text();
+            my $text = $$self{_GUI}{_VTE}->get_clipboard(Gtk3::Gdk::Atom::intern_static_string('CLIPBOARD'))->wait_for_text();
             my $delete = _wEnterValue(
-                $$self{_GUI},
+                $$self{_PARENTWINDOW},
                 "Enter the String/RegExp of text to be *deleted* when pasting.\nUseful for, for example, deleting 'carriage return' from the text before pasting it.",
                 'Use string or Perl RegExps (ex: \n means "carriage return")',
                 '\n|\f|\r'
             ) or return 1;
             $text =~ s/$delete//g;
-            $self->_pasteToVte($text, $$self{_CFG}{environments}{$$self{_UUID}}{'send slow'} || 1);
+            _vteFeedChild($$self{_GUI}{_VTE}, $text);
         }
     });
 
     # Add find string
     push(@vte_menu_items, {separator => 1});
-    push(@vte_menu_items, {label => 'Find...', stockicon => 'gtk-find', shortcut => '<control>F3', code => sub {$self->_wFindInTerminal; return 1;}});
+    push(@vte_menu_items, {label => 'Find...', stockicon => 'gtk-find', shortcut => $PACMain::FUNCS{_KEYBINDS}->GetAccelerator('terminal', 'find-terminal'), code => sub {
+        $self->_wFindInTerminal(); return 1;
+    }});
 
     # Add save session log
-    push(@vte_menu_items, {label => 'Save session log...', stockicon => 'gtk-save', shortcut => '', code => sub{$self->_saveSessionLog;}});
+    push(@vte_menu_items, {label => 'Save session log...', stockicon => 'gtk-save', code => sub {
+        $self->_saveSessionLog();
+    }});
 
     # Add edit session
-    push(@vte_menu_items, {label => 'Edit session...', stockicon => 'gtk-edit', shortcut => '<alt>e', sensitive => $$self{_UUID} ne '__PAC_SHELL__', code => sub{$PACMain::FUNCS{_EDIT}->show($$self{_UUID});}});
+    push(@vte_menu_items, {label => 'Edit session...', stockicon => 'gtk-edit', sensitive => $$self{_UUID} ne '__PAC_SHELL__', code => sub {
+        $PACMain::FUNCS{_EDIT}->show($$self{_UUID});
+    }});
 
     # Add change temporary tab label
     push(@vte_menu_items, {label => 'Temporary TAB Label change...', stockicon => 'gtk-edit', code => sub {
         # Prepare the input window
         my $new_label = _wEnterValue(
-            $PACMain::FUNCS{_MAIN}{_GUI}{main},
+            $$self{_PARENTWINDOW},
             "<b>Temporaly renaming label '@{[__($$self{_TITLE})]}'</b>",
             'Enter the new temporal label:', $$self{_TITLE}
         );
@@ -2169,10 +2245,14 @@ sub _vteMenu {
     }});
 
     # Change title with guessed hostname
-    push(@vte_menu_items, {label => 'Set title with guessed hostname', sensitive => ($$self{CONNECTED} && ! $$self{CONNECTING}), shortcut => '<control><shift>g', code => sub {$self->_execute('remote', '<CTRL_TITLE:hostname>', undef, undef, undef);}});
+    push(@vte_menu_items, {label => 'Set title with guessed hostname', sensitive => ($$self{CONNECTED} && ! $$self{CONNECTING}), code => sub {
+        $self->_execute('remote', '<CTRL_TITLE:hostname>', undef, undef, undef);
+    }});
 
     # Open file explorer on current directory (for PAC Shells only)
-    $$self{_UUID} eq '__PAC_SHELL__' and push(@vte_menu_items, {label => 'Open file manager on current dir', stockicon => 'gtk-open', shortcut => '', sensitive => ($$self{CONNECTED} && ! $$self{CONNECTING}), code => sub {$self->_execute('remote', 'xdg-open .', undef, undef, undef);}});
+    $$self{_UUID} eq '__PAC_SHELL__' and push(@vte_menu_items, {label => 'Open file manager on current dir', stockicon => 'gtk-open', sensitive => ($$self{CONNECTED} && ! $$self{CONNECTING}), code => sub {
+        $self->_execute('remote', 'xdg-open .', undef, undef, undef);
+    }});
 
     # Add take screenshot
     push(@vte_menu_items, {label => 'Take Screenshot', stockicon => 'gtk-media-record', sensitive => $$self{_UUID} ne '__PAC_SHELL__', code => sub {
@@ -2194,17 +2274,10 @@ sub _vteMenu {
         push(@vte_menu_items, {
             label => 'Open new SFTP window',
             stockicon => 'asbru-method-SFTP',
+            shortcut => $PACMain::FUNCS{_KEYBINDS}->GetAccelerator('terminal', 'sftp'),
             sensitive => 1,
             code => sub {
-                my @idx;
-                my $newuuid = '_tmp_' . rand;
-                push(@idx, [$newuuid]);
-                $$self{_CFG}{environments}{$newuuid} = dclone($$self{_CFG}{environments}{$$self{_UUID}});
-                $$self{_CFG}{environments}{$newuuid}{method} = 'SFTP';
-                $$self{_CFG}{environments}{$newuuid}{expect} = [];
-                $$self{_CFG}{environments}{$newuuid}{options} = '';
-                $$self{_CFG}{environments}{$newuuid}{_protected} = 1;
-                $PACMain::{FUNCS}{_MAIN}->_launchTerminals(\@idx);
+                $self->_openSFTP();
             }
         });
     }
@@ -2220,16 +2293,20 @@ sub _vteMenu {
             {
                 label => 'Reset',
                 stockicon => 'gtk-refresh',
+                shortcut => $PACMain::FUNCS{_KEYBINDS}->GetAccelerator('terminal', 'reset'),
                 sensitive => 1,
-                shortcut => '<control><shift>x',
-                code => sub{$$self{_GUI}{_VTE}->reset(1, 0);}
+                code => sub {
+                    $$self{_GUI}{_VTE}->reset(1, 0);
+                }
             },
             {
                 label => 'Reset and clear',
                 stockicon => 'gtk-refresh',
+                shortcut => $PACMain::FUNCS{_KEYBINDS}->GetAccelerator('terminal', 'reset-clear'),
                 sensitive => 1,
-                shortcut => '<control><alt><shift>x',
-                code => sub{$$self{_GUI}{_VTE}->reset(1, 1);}
+                code => sub {
+                    $$self{_GUI}{_VTE}->reset(1, 1);
+                }
             }
         ]
     });
@@ -2253,99 +2330,81 @@ sub _vteMenu {
                         Glib::Source->remove($$self{_SEND_STRING});
                         undef $$self{_SEND_STRING};
                     } else {
-                        defined $$self{_SEND_STRING} and Glib::Source->remove($$self{_SEND_STRING});
-                        $$self{_SEND_STRING} = Glib::Timeout->add_seconds($$self{_CFG}{environments}{$$self{_UUID}}{'send string every'}, sub {
-                            if (!$$self{CONNECTED}) {
-                                return 1;
-                            }
-
-                            my $txt = $$self{_CFG}{environments}{$$self{_UUID}}{'send string txt'};
-                            my $intro = $$self{_CFG}{environments}{$$self{_UUID}}{'send string intro'};
-                            $txt = _subst($txt, $$self{_CFG}, $$self{_UUID});
-                            _vteFeedChild($$self{_GUI}{_VTE}, $txt . ($intro ? "\n" : ''));
-
-                            return 1;
-                        });
+                        $self->_startSendStringTimeout();
                     }
                 }
             },
             # Duplicate connection
             {
                 label => 'Duplicate connection',
-                shortcut => '<control><shift>d',
                 stockicon => 'gtk-copy',
-                code => sub {$PACMain::FUNCS{_MAIN}->_launchTerminals([[$$self{_UUID}]])}
+                code => sub {
+                    $PACMain::FUNCS{_MAIN}->_launchTerminals([[$$self{_UUID}]]);
+                }
             },
             # Restart session
             {
                 label => 'Restart session',
                 stockicon => 'gtk-execute',
                 sensitive => ! $$self{CONNECTED} || ! $$self{_PID},
-                code => sub{$self->start;}
+                code => sub {
+                    $self->start();
+                }
             },
             # Disconnect
             {
                 label => 'Disconnect',
                 stockicon => 'gtk-stop',
+                shortcut => $PACMain::FUNCS{_KEYBINDS}->GetAccelerator('terminal', 'disconnect'),
                 sensitive => $$self{_PID},
-                code => sub {kill(15, $$self{_PID});}
+                code => sub {
+                    $self->_disconnectTerminal();
+                }
             },
             # Disconnect and restart session
             {
                 label => 'Disconnect and Restart session',
                 stockicon => 'gtk-refresh',
-                shortcut => '<control><shift>r',
+                shortcut => $PACMain::FUNCS{_KEYBINDS}->GetAccelerator('terminal', 'restart'),
                 sensitive => $$self{CONNECTED} && $$self{_PID},
-                code => sub {$self->_disconnectAndRestartTerminal();}
+                code => sub {
+                    $self->_disconnectAndRestartTerminal();
+                }
             },
             # Close terminal
             {
                 label => 'Close Terminal',
-                shortcut => '<control>F4',
                 stockicon => 'gtk-close',
-                code => sub {$self->stop(0, 1);}
+                shortcut => $PACMain::FUNCS{_KEYBINDS}->GetAccelerator('terminal', 'close'),
+                code => sub {
+                    $self->stop(0, 1);
+                }
             },
             # Close all terminals
             {
                 label => 'Close All Terminals',
-                shortcut => '<control><shift>F4',
+                shortcut => $PACMain::FUNCS{_KEYBINDS}->GetAccelerator('terminal', 'closeallterminals'),
                 stockicon => 'gtk-close',
                 sensitive => $self->_hasOtherTerminals(),
-                code => sub {$self->_closeAllTerminals();}
+                code => sub {
+                    $self->_closeAllTerminals();
+                }
             },
             # Close disconnected terminals
             {
                 label => 'Close Disconnected Terminals',
-                shortcut => '<control><shift>n',
                 stockicon => 'gtk-close',
+                shortcut => $PACMain::FUNCS{_KEYBINDS}->GetAccelerator('terminal', 'close-disconected'),
                 sensitive => $self->_hasDisconnectedTerminals(),
-                code => sub {$self->_closeDisconnectedTerminals();}
+                code => sub {
+                    $self->_closeDisconnectedTerminals();
+                }
             }
         ]
     });
 
     _wPopUpMenu(\@vte_menu_items, $event);
     return 1;
-}
-
-sub _pasteToVte {
-    my $self = shift;
-    my $txt = shift // '';
-    my $slow = shift // 0;
-
-    if (!$txt) {
-        return 1;
-    }
-
-    if ($slow) {
-        foreach my $char (split('', $txt)) {
-            _vteFeedChild($$self{_GUI}{_VTE}, $char);
-            Gtk3::main_iteration while Gtk3::events_pending;
-            select(undef, undef, undef, $slow / 1000);
-        }
-    } else {
-        $$self{_GUI}{_VTE}->paste_primary();
-    }
 }
 
 sub _setTabColour {
@@ -2418,6 +2477,23 @@ sub _setTabColour {
 
 sub _updateStatus {
     my $self = shift;
+    my $forward_ports = '';
+
+    # Show forwarding in status bar
+    if ($self->{CONNECTED} &&
+        $$self{_CFG}{environments}{$$self{_UUID}}{method} eq 'SSH' &&
+        $$self{_CFG}{defaults}{'info in status bar'}){
+        ($forward_ports) = $$self{_CFG}{environments}{$$self{_UUID}}{options} =~ /((-L|-D|-R)(.+))/;
+        if (! defined $forward_ports){
+            $forward_ports = '';
+        }
+        if ($$self{_CFG}{defaults}{'forwarding full names'}){
+            $forward_ports =~ s/-L/Local Forwarding:/;
+            $forward_ports =~ s/-R/Remote Forwarding:/;
+            $forward_ports =~ s/-D/Dynamic Forwarding:/;
+            $forward_ports =~ s/(-L|-R|-D) //g
+        }
+    }
 
     if (!defined $$self{_GUI}{status}) {
         return 1;
@@ -2429,9 +2505,9 @@ sub _updateStatus {
 
     # Control CLUSTER status
     if ($$self{_CLUSTER} ne '') {
-        $$self{_GUI}{status}->push(0, "[IN CLUSTER: $$self{_CLUSTER}] - Status: $$self{_LAST_STATUS}");
+        $$self{_GUI}{status}->push(0, "[IN CLUSTER: $$self{_CLUSTER}] - Status: $$self{_LAST_STATUS} $forward_ports");
     } else {
-        $$self{_GUI}{status}->push(0, "Status: $$self{_LAST_STATUS}");
+        $$self{_GUI}{status}->push(0, "Status: $$self{_LAST_STATUS} $forward_ports");
     }
 
     if (defined $$self{_GUI}{status}) {
@@ -2442,6 +2518,25 @@ sub _updateStatus {
     }
 
     return 1;
+}
+
+sub _openSFTP {
+    my $self = shift;
+
+    if ($$self{_CFG}{environments}{$$self{_UUID}}{method} ne 'SSH') {
+        return 0;
+    }
+
+    my @idx;
+    my $newuuid = '_tmp_' . rand;
+    push(@idx, [$newuuid]);
+    $$self{_CFG}{environments}{$newuuid} = dclone($$self{_CFG}{environments}{$$self{_UUID}});
+    $$self{_CFG}{environments}{$newuuid}{method} = 'SFTP';
+    $$self{_CFG}{environments}{$newuuid}{expect} = [];
+    $$self{_CFG}{environments}{$newuuid}{options} = '';
+    $$self{_CFG}{environments}{$newuuid}{autossh} = 0;
+    $$self{_CFG}{environments}{$newuuid}{_protected} = 1;
+    $PACMain::{FUNCS}{_MAIN}->_launchTerminals(\@idx);
 }
 
 sub _clusterCommit {
@@ -2492,10 +2587,12 @@ sub _tabToWin {
             my $btnfocus = Gtk3::Button->new_with_mnemonic('Set _keyboard focus');
             $btnfocus->set_image(Gtk3::Image->new_from_icon_name('input-keyboard', 'GTK_ICON_SIZE_SMALL_TOOLBAR'));
             $btnfocus->set('can_focus', 0);
-            $btnfocus->signal_connect ('clicked' => sub {$$self{FOCUS}->child_focus('GTK_DIR_TAB_FORWARD');});
+            $btnfocus->signal_connect ('clicked' => sub {
+                $$self{FOCUS}->child_focus('GTK_DIR_TAB_FORWARD');
+            });
             $vbox->pack_start($btnfocus, 0, 1, 0);
 
-            $$self{_WINDOWTERMINAL}->set_default_size($$self{_GUI}{_VBOX}->get_allocated_width, $$self{_GUI}{_VBOX}->get_allocated_height - $$self{_GUI}{status}->get_allocated_height);
+            $$self{_WINDOWTERMINAL}->set_default_size($$self{_GUI}{_VBOX}->get_allocated_width(), $$self{_GUI}{_VBOX}->get_allocated_height() - $$self{_GUI}{status}->get_allocated_height());
             $$self{_WINDOWTERMINAL}->show_all();
             $$self{_GUI}{_SOCKET}->reparent($vp);
             $$self{_GUI}{_VBOX}->destroy();
@@ -2516,6 +2613,7 @@ sub _tabToWin {
 
     $$self{_WINDOWTERMINAL}->show();
     $$self{_WINDOWTERMINAL}->present();
+    $self->{_PARENTWINDOW} = $$self{_WINDOWTERMINAL};
 
     # Capture window close
     $$self{_WINDOWTERMINAL}->signal_connect('delete_event' => sub {
@@ -2571,6 +2669,7 @@ sub _winToTab {
     });
 
     $$self{_GUI}{_TABLBL}->show_all();
+    $self->{_PARENTWINDOW} = $$self{_NOTEBOOKWINDOW};
 
     $self->_setupTabDND();
 
@@ -2615,6 +2714,7 @@ sub _tabMenu {
 
     # Show a popup with the opened tabs (if tabbed!!)
     my @submenu_goto;
+    my %submenu_goto_labels;
     foreach my $uuid (keys %PACMain::RUNNING) {
         if (!defined $PACMain::RUNNING{$uuid}{terminal}{_SPLIT}) {
             next;
@@ -2623,11 +2723,29 @@ sub _tabMenu {
         if ($uuid eq $$self{_UUID} || $i < 0) {
             next;
         }
+        # Remember the number of times we encountered the same label
+        my $label = $PACMain::RUNNING{$uuid}{terminal}{_TITLE};
+        if (!defined $submenu_goto_labels{$label}) {
+            $submenu_goto_labels{$label} = 0;
+        }
+        $submenu_goto_labels{$label}++;
+
+        # Add new entry into the list
         push(@submenu_goto,
-        {
-            label => "$i: $PACMain::RUNNING{$uuid}{terminal}{_TITLE}",
-            code => sub {$$self{_NOTEBOOK}->set_current_page($i);}
-        });
+            {
+                label => $label,
+                page_number => $i,
+                code => sub {
+                    $$self{_NOTEBOOK}->set_current_page($i);
+                }
+            }
+        );
+    }
+    foreach my $submenu_goto_entry (@submenu_goto) {
+        # If multiple tabs with the same name, add the page number to be able to identify them
+        if ($submenu_goto_labels{$submenu_goto_entry->{label}} > 1) {
+            $submenu_goto_entry->{label} .= ' (#' . $submenu_goto_entry->{page_number} . ')';
+        }
     }
     @submenu_goto = sort {$$a{label} cmp $$b{label}} @submenu_goto;
     push(@vte_menu_items,
@@ -2645,7 +2763,9 @@ sub _tabMenu {
             label => "Stop script '$$self{_SCRIPT_NAME}'",
             stockicon => 'gtk-media-stop',
             sensitive => 1,
-            code => sub {kill(15, $$self{_PID});}
+            code => sub {
+                $self->_disconnectTerminal();
+            }
         });
 
         _wPopUpMenu(\@vte_menu_items, $event);
@@ -2671,31 +2791,42 @@ sub _tabMenu {
                 push(@submenu_split_v,
                 {
                     label => "$i: $PACMain::RUNNING{$uuid_tmp}{terminal}{_TITLE}",
-                    code => sub {$self->_split($uuid_tmp);}
+                    code => sub {
+                        $self->_split($uuid_tmp);
+                    }
                 });
                 push(@submenu_split_h,
                 {
                     label => "$i: $PACMain::RUNNING{$uuid_tmp}{terminal}{_TITLE}",
-                    code => sub {$self->_split($uuid_tmp, 1);}
+                    code => sub {
+                        $self->_split($uuid_tmp, 1);
+                    }
                 });
             }
             @submenu_split_v = sort {$$a{label} cmp $$b{label}} @submenu_split_v;
             @submenu_split_h = sort {$$a{label} cmp $$b{label}} @submenu_split_h;
 
-            push(@vte_menu_items, {label => 'Detach TAB to a new Window', stockicon => 'gtk-fullscreen', code => sub {_tabToWin($self); return 1;}});
+            push(@vte_menu_items, {label => 'Detach TAB to a new Window', stockicon => 'gtk-fullscreen', code => sub {
+                _tabToWin($self);
+                return 1;
+            }});
 
             if ($$self{_SPLIT}) {
                 push(@vte_menu_items,
                 {
                     label => 'Unsplit',
                     stockicon => 'gtk-zoom-fit',
-                    code => sub {$self->_unsplit;}
+                    code => sub {
+                        $self->_unsplit();
+                    }
                 });
                 push(@vte_menu_items,
                 {
                     label => 'Equally resize terminals',
                     stockicon => 'gtk-zoom-fit',
-                    code => sub {$self->_equalresize;}
+                    code => sub {
+                        $self->_equalresize();
+                    }
                 });
             } else {
                 push(@vte_menu_items,
@@ -2722,7 +2853,10 @@ sub _tabMenu {
             }
             push(@vte_menu_items, {separator => 1});
         } else {
-            push(@vte_menu_items, {label => 'Attach Window to main TAB bar', stockicon => 'gtk-leave-fullscreen', code => sub {_winToTab($self); return 1;}});
+            push(@vte_menu_items, {label => 'Attach Window to main TAB bar', stockicon => 'gtk-leave-fullscreen', code => sub {
+                _winToTab($self);
+                return 1;
+            }});
             push(@vte_menu_items, {separator => 1});
         }
     }
@@ -2734,9 +2868,8 @@ sub _tabMenu {
     {
         label => 'New Cluster...',
         stockicon => 'gtk-new',
-        shortcut => '',
         code => sub {
-            my $cluster = _wEnterValue($self, 'Enter a name for the <b>New Cluster</b>');
+            my $cluster = _wEnterValue($$self{_PARENTWINDOW}, 'Enter a name for the <b>New Cluster</b>');
             if ((! defined $cluster) || ($cluster =~ /^\s*$/go)) {
                 return 1;
             }
@@ -2757,7 +2890,9 @@ sub _tabMenu {
             label => "$cluster ($clusters{$cluster}{total} terminals connected)",
             tooltip => $clusters{$cluster}{connections},
             sensitive => $cluster ne $$self{_CLUSTER},
-            code => sub {$PACMain::FUNCS{_CLUSTER}->addToCluster($$self{_UUID_TMP}, $tmp);}
+            code => sub {
+                $PACMain::FUNCS{_CLUSTER}->addToCluster($$self{_UUID_TMP}, $tmp);
+            }
         });
     }
     push(@vte_menu_items,
@@ -2772,30 +2907,41 @@ sub _tabMenu {
         label => 'Remove from Cluster',
         stockicon => 'gtk-delete',
         sensitive => $$self{_CLUSTER} ne '',
-        code => sub {$PACMain::FUNCS{_CLUSTER}->delFromCluster($$self{_UUID_TMP}, $$self{_CLUSTER});}
+        code => sub {
+            $PACMain::FUNCS{_CLUSTER}->delFromCluster($$self{_UUID_TMP}, $$self{_CLUSTER});
+        }
     });
     push(@vte_menu_items,
     {
         label => 'Cluster Admin...',
         stockicon => 'gtk-justify-fill',
         sensitive => 1,
-        code => sub {$PACMain::FUNCS{_CLUSTER}->show();}
+        code => sub {
+            $PACMain::FUNCS{_CLUSTER}->show();
+        }
     });
     push(@vte_menu_items, {separator => 1});
 
-    push(@vte_menu_items, {label => 'Find...', stockicon => 'gtk-find', shortcut => '', code => sub {$self->_wFindInTerminal; return 1;}});
+    push(@vte_menu_items, {label => 'Find...', stockicon => 'gtk-find', code => sub {
+        $self->_wFindInTerminal();
+        return 1;
+    }});
 
     # Add save session log
-    push(@vte_menu_items, {label => 'Save session log...', stockicon => 'gtk-save', shortcut => '', code => sub{$self->_saveSessionLog;}});
+    push(@vte_menu_items, {label => 'Save session log...', stockicon => 'gtk-save', code => sub {
+        $self->_saveSessionLog();
+    }});
 
     # Add edit session
-    push(@vte_menu_items, {label => 'Edit session...', stockicon => 'gtk-edit', sensitive => $$self{_UUID} ne '__PAC_SHELL__', code => sub{$PACMain::FUNCS{_EDIT}->show($$self{_UUID});}});
+    push(@vte_menu_items, {label => 'Edit session...', stockicon => 'gtk-edit', sensitive => $$self{_UUID} ne '__PAC_SHELL__', code => sub {
+        $PACMain::FUNCS{_EDIT}->show($$self{_UUID});
+    }});
 
     # Add change temporary tab label
     push(@vte_menu_items, {label => 'Temporary TAB Label change...', stockicon => 'gtk-edit', code => sub {
         # Prepare the input window
         my $new_label = _wEnterValue(
-            $PACMain::FUNCS{_MAIN}{_GUI}{main},
+            $$self{_PARENTWINDOW},
             "<b>Temporaly renaming label '@{[__($$self{_TITLE})]}'</b>",
             'Enter the new temporal label:',
             $$self{_TITLE}
@@ -2812,23 +2958,24 @@ sub _tabMenu {
     push(@vte_menu_items, {label => 'New connection', stockicon => 'gtk-connect', submenu => &_menuAvailableConnections($PACMain::FUNCS{_MAIN}{_GUI}{treeConnections}{data})});
 
     # Add a 'duplicate connection' button
-    push(@vte_menu_items, {label => 'Duplicate connection', stockicon => 'gtk-copy', shortcut => '', sensitive => 1, code => sub{$PACMain::FUNCS{_MAIN}->_launchTerminals([[$$self{_UUID}]]);}});
+    push(@vte_menu_items, {label => 'Duplicate connection', stockicon => 'gtk-copy', sensitive => 1, code => sub {
+        $PACMain::FUNCS{_MAIN}->_launchTerminals([[$$self{_UUID}]]);
+    }});
 
     # Add close terminal
     push(@vte_menu_items, {separator => 1});
     # Add a 'disconnect' button to disconnect without closing the terminal
-    push(@vte_menu_items, {label => 'Disconnect session', stockicon => 'gtk-stop', sensitive => $$self{_PID}, code => sub {kill(15, $$self{_PID});}});
-    push(@vte_menu_items, {label => 'Restart session', stockicon => 'gtk-execute', sensitive => !$$self{CONNECTED} || !$$self{_PID}, code => sub {$self->start();}});
-    push(@vte_menu_items, {label => 'Close terminal', stockicon => 'gtk-close', shortcut => '<control>F4', code => sub {$self->stop(undef, 1);}});
-    push(@vte_menu_items, {label => 'Close ALL terminals', stockicon => 'gtk-close', shortcut => '<control><shift>F4', code => sub {
-        my @list = keys %PACMain::RUNNING;
-        if (!(scalar(@list) && _wConfirm($$self{_WINDOWTERMINAL}, "Are you sure you want to close <b>every</b> terminal?"))) {
-            return 1;
-        }
-        foreach my $uuid (@list) {
-            $PACMain::RUNNING{$uuid}{'terminal'}->stop('force', 'deep');
-        }
-        return 1;
+    push(@vte_menu_items, {label => 'Disconnect session', stockicon => 'gtk-stop', sensitive => $$self{_PID}, code => sub {
+        $self->_disconnectTerminal();
+    }});
+    push(@vte_menu_items, {label => 'Restart session', stockicon => 'gtk-execute', sensitive => !$$self{CONNECTED} || !$$self{_PID}, code => sub {
+        $self->start();
+    }});
+    push(@vte_menu_items, {label => 'Close terminal', stockicon => 'gtk-close', code => sub {
+        $self->stop(undef, 1);
+    }});
+    push(@vte_menu_items, {label => 'Close all terminals', stockicon => 'gtk-close', code => sub {
+        return $self->_closeAllTerminals();
     }});
 
     _wPopUpMenu(\@vte_menu_items, $event);
@@ -2862,7 +3009,12 @@ sub _split {
 
     my $eblbl1 = Gtk3::EventBox->new();
     $eblbl1->add(Gtk3::Image->new_from_stock('gtk-close', 'menu'));
-    $eblbl1->signal_connect('button_release_event' => sub {$_[1]->button != 1 and return 0; $self->stop(undef, 1);});
+    $eblbl1->signal_connect('button_release_event' => sub {
+        if ($_[1]->button != 1) {
+            return 0;
+        }
+        $self->stop(undef, 1);
+    });
     $$self{_GUI}{_TABLBL}->pack_start($eblbl1, 0, 1, 0);
 
     $$self{_GUI}{_TABLBL}{_EBLBL}->signal_connect('button_press_event' => sub {
@@ -2892,12 +3044,16 @@ sub _split {
     $self->_setTabColour();
     $PACMain::RUNNING{$uuid_tmp}{terminal}->_updateCFG();
 
-    my ($x, $y) = ($$self{_SPLIT_VPANE}->get_parent->get_allocated_width, $$self{_SPLIT_VPANE}->get_parent->get_allocated_height);
-    $$self{_SPLIT_VPANE}->set_position((($vertical ? $y : $x) / 2) - 7);
+    # Force redraw to have the correct split pane size
+    Gtk3::main_iteration() while Gtk3::events_pending();
 
+    # Equal size by default
+    $self->_equalresize();
+
+    # To always force keeping equal size
     if ($$self{_CFG}{'defaults'}{'force split tabs to 50%'}) {
         $$self{_SPLIT_VPANE}->signal_connect('size-allocate', sub {
-            $self->_equalresize ();
+            $self->_equalresize();
         });
     }
 
@@ -2907,8 +3063,14 @@ sub _split {
 sub _equalresize {
     my $self = shift;
 
-    my ($x, $y) = ($$self{_SPLIT_VPANE}->get_parent->get_allocated_width, $$self{_SPLIT_VPANE}->get_parent->get_allocated_height);
-    $$self{_SPLIT_VPANE}->set_position((($$self{_SPLIT_VERTICAL} ? $y : $x) / 2) - 7);
+    my ($w, $h) = ($$self{_SPLIT_VPANE}->get_allocated_width(), $$self{_SPLIT_VPANE}->get_allocated_height());
+    my $s = (($$self{_SPLIT_VERTICAL} ? $h : $w) / 2) - 7;
+
+    # Set split position
+    $$self{_SPLIT_VPANE}->set_position($s);
+
+    # Force redraw
+    Gtk3::main_iteration() while Gtk3::events_pending();
 
     return 1;
 }
@@ -2940,7 +3102,12 @@ sub _unsplit {
 
     my $eblbl1 = Gtk3::EventBox->new();
     $eblbl1->add(Gtk3::Image->new_from_stock('gtk-close', 'menu'));
-    $eblbl1->signal_connect('button_release_event' => sub {$_[1]->button != 1 and return 0; $self->stop(undef, 1);});
+    $eblbl1->signal_connect('button_release_event' => sub {
+        if ($_[1]->button != 1) {
+            return 0;
+        }
+        $self->stop(undef, 1);
+    });
     $$self{_GUI}{_TABLBL}->pack_start($eblbl1, 0, 1, 0);
 
     $$self{_GUI}{_TABLBL}{_EBLBL}->signal_connect('button_press_event' => sub {
@@ -2975,20 +3142,25 @@ sub _unsplit {
 
     my $eblbl3 = Gtk3::EventBox->new();
     $eblbl3->add(Gtk3::Image->new_from_stock('gtk-close', 'menu'));
-    $eblbl3->signal_connect('button_release_event' => sub {$_[1]->button != 1 and return 0; $self->stop(undef, 1);});
+    $eblbl3->signal_connect('button_release_event' => sub {
+        if ($_[1]->button != 1) {
+            return 0;
+        }
+        $PACMain::RUNNING{$uuid_tmp}{terminal}->stop(undef, 1);
+    });
     $PACMain::RUNNING{$uuid_tmp}{terminal}{_GUI}{_TABLBL}->pack_start($eblbl3, 0, 1, 0);
 
     $PACMain::RUNNING{$uuid_tmp}{terminal}{_GUI}{_TABLBL}{_EBLBL}->signal_connect('button_press_event' => sub {
         my ($widget, $event) = @_;
 
         if ($event->button eq 2) {
-            $self->stop(undef, 1);
+            $PACMain::RUNNING{$uuid_tmp}{terminal}->stop(undef, 1);
             return 1;
         } elsif ($event->button ne 3) {
             return 0;
         }
 
-        $self->_tabMenu($event);
+        $PACMain::RUNNING{$uuid_tmp}{terminal}->_tabMenu($event);
         return 1;
     });
 
@@ -3030,12 +3202,15 @@ sub _setupTabDND {
         my $i = $$self{_NOTEBOOK}->page_num($$self{_GUI}{_VBOX});
         $PACMain::FUNCS{_MAIN}{DND}{source_tab} = $$self{_NOTEBOOK}->get_nth_page($i);
     });
-    $$self{_GUI}{_TABLBL}->signal_connect('drag_end' => sub {$PACMain::FUNCS{_MAIN}{DND} = undef; return 1;});
+    $$self{_GUI}{_TABLBL}->signal_connect('drag_end' => sub {
+        $PACMain::FUNCS{_MAIN}{DND} = undef;
+        return 1;
+    });
     $$self{_GUI}{_TABLBL}->signal_connect('drag_failed' => sub {
         if ($_[2] eq 'user-cancelled') {
             return 0;
         }
-        $self->_tabToWin;
+        $self->_tabToWin();
     });
 
     $$self{_GUI}{_TABLBL}->drag_dest_set('GTK_DEST_DEFAULT_ALL', \@targets, ['move']);
@@ -3073,18 +3248,18 @@ sub _saveSessionLog {
     $new_file = $dialog->get_filename;
     $dialog->destroy();
 
-    my $confirm = _wYesNoCancel($$self{_WINDOWTERMINAL}, 'Do you want to remove escape sequences from the saved log?');
+    my $confirm = _wYesNoCancel($$self{_PARENTWINDOW}, 'Do you want to remove escape sequences from the saved log?');
 
     if ($confirm eq 'yes') {
         if (!open(F, "$$self{_LOGFILE}")) {
-            _wMessage($$self{_WINDOWTERMINAL}, "ERROR: Could not open file '$$self{_LOGFILE}' for reading!! ($!)");
+            _wMessage($$self{_PARENTWINDOW}, "ERROR: Could not open file '$$self{_LOGFILE}' for reading!! ($!)");
             return 1;
         }
         my @lines = <F>;
         close F;
 
         if (!open(F, ">$new_file")) {
-            _wMessage($$self{_WINDOWTERMINAL}, "ERROR: Could not open file '$new_file' for writting!! ($!)");
+            _wMessage($$self{_PARENTWINDOW}, "ERROR: Could not open file '$new_file' for writting!! ($!)");
             return 1;
         }
         print F _removeEscapeSeqs(join('', @lines));
@@ -3111,9 +3286,9 @@ sub _execute {
         return 0;
     }
 
-    my ($cmd, $data) = _subst($comm, $$self{_CFG}, $$self{_UUID});
+    my ($cmd, $data) = _subst($comm, $$self{_CFG}, $$self{_UUID}, $$self{_UUID_TMP});
     if (!defined $cmd) {
-        _wMessage($$self{_WINDOWTERMINAL}, "Canceled '<b>$where</b>' execution of '<b>$comm</b>'");
+        _wMessage($$self{_PARENTWINDOW}, "Canceled '<b>$where</b>' execution of '<b>$comm</b>'");
         return 0;
     }
 
@@ -3128,13 +3303,13 @@ sub _execute {
         # Prevent "Remote Executions storms" (half a second between interruptions to spawned processes)
         my $time = join('.', gettimeofday());
         if (($time - $$self{_EXEC_LAST}) <= $EXEC_STORM_TIME) {
-            _wMessage($$self{_WINDOWTERMINAL}, "Please, wait at least <b>$EXEC_STORM_TIME</b> seconds between Remote Commands Executions", 1);
+            _wMessage($$self{_PARENTWINDOW}, "Please, wait at least <b>$EXEC_STORM_TIME</b> seconds between Remote Commands Executions", 1);
             return 0;
         }
         $$self{_EXEC_LAST} = $time;
 
         if (!kill('USR1', $$self{_PID})) {
-            _wMessage($$self{_WINDOWTERMINAL}, "ERROR: Could not signal process '$$self{_PID}'\nInconsistent state!\nPlease, restart PAC!!", 1);
+            _wMessage($$self{_PARENTWINDOW}, "ERROR: Could not signal process '$$self{_PID}'\nInconsistent state!\nPlease, restart PAC!!", 1);
             return 0;
         }
         my %tmp;
@@ -3146,7 +3321,7 @@ sub _execute {
         $tmp{cmd} = $cmd;
         nstore_fd(\%tmp, $$self{_SOCKET_CLIENT}) or die "ERROR:$!";
     } elsif ($where eq 'local') {
-        system($cmd . ' &');
+        system("$ENV{'ASBRU_ENV_FOR_EXTERNAL'} $cmd &");
     }
 
     return 1;
@@ -3162,10 +3337,10 @@ sub _pipeExecOutput {
         return 1;
     }
     foreach my $cmd (@{$pipe}) {
-        open(F,">:utf8",$$self{_TMPPIPE});
+        open(F, ">:utf8", $$self{_TMPPIPE});
         print F $out;
         close F;
-        $out = `cat $$self{_TMPPIPE} | $cmd 2>&1`;
+        $out = `$ENV{'ASBRU_ENV_FOR_EXTERNAL'} cat $$self{_TMPPIPE} | $ENV{'ASBRU_ENV_FOR_EXTERNAL'} $cmd 2>&1`;
     }
     $$self{_EXEC}{OUT} = $out;
     $PACMain::FUNCS{_PIPE}->show();
@@ -3251,7 +3426,7 @@ sub _wPrePostExec {
             }
 
             # Replace PAC variables with their corresponding values
-            $cmd = _subst($cmd, $$self{_CFG}, $$self{_UUID});
+            $cmd = _subst($cmd, $$self{_CFG}, $$self{_UUID}, $$self{_UUID_TMP});
 
             # Make some update to progress bar
             $ppe{window}{gui}{pb}->set_text('Executing: ' . $cmd);
@@ -3259,7 +3434,7 @@ sub _wPrePostExec {
             Gtk3::main_iteration while Gtk3::events_pending;
 
             # Launch the local command
-            system($cmd);
+            system("$ENV{'ASBRU_ENV_FOR_EXTERNAL'} $cmd");
         }
 
         # Change mouse cursor (to normal)
@@ -3277,12 +3452,11 @@ sub _wPrePostExec {
         # Create the dialog window,
         $w{window}{data} = Gtk3::Dialog->new_with_buttons(
             $self->{_NAME} . " : $APPNAME : Local execution",
-            undef,
+            $self->{_PARENTWINDOW},
             'modal',
         );
         # and setup some dialog properties.
         $w{window}{data}->set_default_response('ok');
-        $w{window}{data}->set_position('center');
         $w{window}{data}->set_icon_from_file($APPICON);
         $w{window}{data}->set_size_request(400, 300);
         $w{window}{data}->set_resizable(1);
@@ -3425,7 +3599,7 @@ sub _wSelectChain {
         if ($ppe{window}{gui}{cbExecInCluster}->get_active) {
             foreach my $cluster_uuid (keys %PACMain::RUNNING) {
                 if (! kill('HUP', $PACMain::RUNNING{$cluster_uuid}{terminal}{_PID})) {
-                    _wMessage($$self{_WINDOWTERMINAL}, "ERROR: Could not signal process '$PACMain::RUNNING{$cluster_uuid}{terminal}{_PID}'\nInconsistent state!\nPlease, restart PAC!!", 1);
+                    _wMessage($$self{_PARENTWINDOW}, "ERROR: Could not signal process '$PACMain::RUNNING{$cluster_uuid}{terminal}{_PID}'\nInconsistent state!\nPlease, restart PAC!!", 1);
                     return 0;
                 }
 
@@ -3436,7 +3610,7 @@ sub _wSelectChain {
             }
         } else {
             if (! kill('HUP', $$self{_PID})) {
-                _wMessage($$self{_WINDOWTERMINAL}, "ERROR: Could not signal process '$$self{_PID}'\nInconsistent state!\nPlease, restart PAC!!", 1);
+                _wMessage($$self{_PARENTWINDOW}, "ERROR: Could not signal process '$$self{_PID}'\nInconsistent state!\nPlease, restart PAC!!", 1);
                 return 0;
             }
 
@@ -3609,7 +3783,7 @@ sub _updateCFG {
             my $intro = $$hash{intro};
 
             my $ok = $self->_execute('remote', $cmd, $confirm, undef, undef, $intro);
-            if (($ok)&&($$self{_GUI}{_MACROSCLUSTER}->get_active)) {
+            if (($ok)&&($$self{_GUI}{_MACROSCLUSTER}->get_active())) {
                 $self->_clusterCommit(undef, $cmd . "\n", undef);
             }
             return 1;
@@ -3674,13 +3848,23 @@ sub _updateCFG {
         ###################################################################
     }
     # Build Buttons for macros
-    elsif ($$self{_CFG}{'defaults'}{'show commands box'} == 2 && defined $$self{_GUI}{_MACROSBOX})
+    elsif ($$self{_CFG}{'defaults'}{'show commands box'} == 2 && defined($$self{_GUI}{_MACROSBOX}))
     {
+        my $isCluster = $$self{_CLUSTER} ? 1 : 0;
+        my $wasMacroClusterActive = defined($$self{_GUI}{_MACROSCLUSTER}) ? $$self{_GUI}{_MACROSCLUSTER}->get_active() : $isCluster;
+
+        my $updateMacroButton = sub  {
+            my $str = 'Sending ' . ($$self{_GUI}{_MACROSCLUSTER}->get_active() ? 'CLUSTER' : 'THIS') . ':';
+            $$self{_GUI}{_MACROSCLUSTER}->set_label($str);
+        };
+
         $$self{_GUI}{_MACROSBOX}->set_sensitive($$self{CONNECTED});
-        $$self{_GUI}{_MACROSBOX}->foreach(sub {$_[0]->destroy();});
-        $$self{_GUI}{_MACROSCLUSTER} = Gtk3::CheckButton->new_with_label('Sending THIS: ');
+        $$self{_GUI}{_MACROSBOX}->foreach(sub { $_[0]->destroy(); });
+        $$self{_GUI}{_MACROSCLUSTER} = Gtk3::CheckButton->new();
         $$self{_GUI}{_MACROSCLUSTER}->set('can-focus', 0);
-        $$self{_GUI}{_MACROSCLUSTER}->signal_connect('toggled', sub {$$self{_GUI}{_MACROSCLUSTER}->set_label($$self{_GUI}{_MACROSCLUSTER}->get_active ? 'Sending CLUSTER: ' : 'Sending THIS: ');});
+        $$self{_GUI}{_MACROSCLUSTER}->signal_connect('toggled', $updateMacroButton);
+        $$self{_GUI}{_MACROSCLUSTER}->set_active($wasMacroClusterActive);
+        &$updateMacroButton();
         $$self{_GUI}{_MACROSBOX}->pack_start($$self{_GUI}{_MACROSCLUSTER}, 0, 1, 0);
 
         ###################################################################
@@ -3707,7 +3891,7 @@ sub _updateCFG {
 
             $$self{_GUI}{"_BTNMACRO_$i"}->signal_connect('clicked' => sub {
                 my $ok = $self->_execute('remote', $cmd, $confirm, undef, undef, $intro);
-                if (($ok)&&($$self{_GUI}{_MACROSCLUSTER}->get_active)) {
+                if ($ok && $$self{_GUI}{_MACROSCLUSTER}->get_active()) {
                     $self->_clusterCommit(undef, $cmd . "\n", undef);
                 }
             });
@@ -3727,6 +3911,7 @@ sub _updateCFG {
                 $$self{_GUI}{"_BTNMACRO_GLOB_$i"} = Gtk3::Button->new();
                 $$self{_GUI}{"_BTNMACRO_GLOB_$i"}->set('can-focus', 0);
                 $$self{_GUI}{"_BTNMACRO_GLOB_$i"}->set_tooltip_text($cmd);
+
                 my $btn2 = Gtk3::Label->new($desc ? $desc : $cmd);
                 $btn2->set_ellipsize('PANGO_ELLIPSIZE_END');
                 $$self{_GUI}{"_BTNMACRO_GLOB_$i"}->add($btn2);
@@ -3734,7 +3919,12 @@ sub _updateCFG {
                 $$self{_GUI}{_MACROSBOX}->pack_start($$self{_GUI}{"_BTNMACRO_GLOB_$i"}, 1, 1, 0);
                 $$self{_GUI}{_MACROSBOX}->show_all();
 
-                $$self{_GUI}{"_BTNMACRO_GLOB_$i"}->signal_connect('clicked' => sub {$self->_execute('remote', $cmd, $confirm, undef, undef, $intro);});
+                $$self{_GUI}{"_BTNMACRO_GLOB_$i"}->signal_connect('clicked' => sub {
+                    my $ok = $self->_execute('remote', $cmd, $confirm, undef, undef, $intro);
+                    if ($ok && $$self{_GUI}{_MACROSCLUSTER}->get_active()) {
+                        $self->_clusterCommit(undef, $cmd . "\n", undef);
+                    }
+                });
 
                 ++$i;
             }
@@ -3824,7 +4014,7 @@ sub _wFindInTerminal {
 
     if (defined $w{window}) {
         # Load the contents of the textbuffer with the corresponding log file
-        if (open(F, "<:utf8",$$self{_LOGFILE})) {
+        if (open(F, "<:utf8", $$self{_LOGFILE})) {
             @{$$self{_TEXT}} = <F>;
             $text = _removeEscapeSeqs(join('', @{$$self{_TEXT}}));
             close F;
@@ -3963,7 +4153,7 @@ sub _wFindInTerminal {
     $w{window}{gui}{btnCopy} = Gtk3::Button->new_from_stock('gtk-copy');
     $w{window}{gui}{hbtnbox}->pack_start($w{window}{gui}{btnCopy}, 1, 1, 0);
     $w{window}{gui}{btnCopy}->signal_connect('clicked' => sub {
-        $$self{_GUI}{_VTE}->get_clipboard(Gtk3::Gdk::Atom::intern_static_string('PRIMARY'))->set_text (
+        $$self{_GUI}{_VTE}->get_clipboard(Gtk3::Gdk::Atom::intern_static_string('CLIPBOARD'))->set_text (
             join(
             "\n",
             map $w{window}{gui}{treefound}{data}[$_][1],
@@ -3974,7 +4164,11 @@ sub _wFindInTerminal {
     # Put a 'close' button
     $w{window}{gui}{btnclose} = Gtk3::Button->new_from_stock('gtk-close');
     $w{window}{gui}{hbtnbox}->pack_start($w{window}{gui}{btnclose}, 0, 1, 0);
-    $w{window}{gui}{btnclose}->signal_connect('clicked' => sub {$w{window}{data}->destroy(); undef %w; return 1;});
+    $w{window}{gui}{btnclose}->signal_connect('clicked' => sub {
+        $w{window}{data}->destroy();
+        undef %w;
+        return 1;
+    });
 
     # Create frame 3
     $w{window}{gui}{frame3} = Gtk3::Frame->new();
@@ -4006,7 +4200,7 @@ sub _wFindInTerminal {
     $w{window}{gui}{hboxmain}->set_position(($w{window}{data}->get_size) / 2);
 
     # Load the contents of the textbuffer with the corresponding log file
-    if (open(F, "<:utf8",$$self{_LOGFILE})) {
+    if (open(F, "<:utf8", $$self{_LOGFILE})) {
         @{$$self{_TEXT}} = <F>;
         $text = _removeEscapeSeqs(join('', @{$$self{_TEXT}}));
         close F;
@@ -4148,13 +4342,27 @@ sub _checkSendKeystrokes {
     return $data;
 }
 
+sub _disconnectTerminal {
+    my $self = shift;
+
+    if ($self->{CONNECTED} && $$self{_PID}) {
+        # Hide the embed window to avoid unexpected updates or crashes when killing the underlying process
+        if ($$self{_GUI}{_SOCKET} && $$self{_GUI}{_SOCKET}->get_plug_window()) {
+            $self->_showEmbedMessages();
+        }
+        return kill(15, $$self{_PID});
+    }
+
+    return 0;
+}
+
 sub _disconnectAndRestartTerminal {
     my $self = shift;
 
-    if (kill(15, $$self{_PID})) {
+    if ($self->_disconnectTerminal()) {
         # If successfully killed, restart
         Glib::Timeout->add_seconds(1, sub {
-            $self->start;
+            $self->start();
             return 0;
         });
     }
@@ -4164,11 +4372,13 @@ sub _closeAllTerminals {
     my $self = shift;
     my @list = keys %PACMain::RUNNING;
 
-    if (!(scalar(@list) && _wConfirm($$self{_WINDOWTERMINAL}, "Are you sure you want to close <b>all</b> terminals?"))) {
+    if (!(scalar(@list) && _wConfirm($$self{_PARENTWINDOW}, "Are you sure you want to close <b>all</b> terminals?"))) {
         return 1;
     }
     foreach my $uuid (@list) {
-        $PACMain::RUNNING{$uuid}{'terminal'}->stop('force', 'deep');
+        if (ref($PACMain::RUNNING{$uuid}{'terminal'}) =~ /^PACTerminal|PACShell$/go) {
+            $PACMain::RUNNING{$uuid}{'terminal'}->stop('force', 'deep');
+        }
     }
     return 1;
 }
@@ -4185,7 +4395,7 @@ sub _closeDisconnectedTerminals {
     my @list = keys %PACMain::RUNNING;
 
     foreach my $uuid (@list) {
-        if ($PACMain::RUNNING{$uuid}{'terminal'}{_LAST_STATUS} eq 'DISCONNECTED') {
+        if (defined $PACMain::RUNNING{$uuid}{'terminal'}{_LAST_STATUS} && $PACMain::RUNNING{$uuid}{'terminal'}{_LAST_STATUS} eq 'DISCONNECTED') {
             $PACMain::RUNNING{$uuid}{'terminal'}->stop('force', 'deep');
         }
     }
@@ -4213,6 +4423,11 @@ sub _showInfoTab {
 sub _hideEmbedMessages {
     my $self = shift;
 
+    if (!$$self{_GUI}{_VTE}) {
+        # Too late, probably ; message window does not exist anymore
+        return;
+    }
+
     # Hide messages and show the embed window
     $$self{_GUI}{_VTE}->hide();
     $$self{_GUI}{_SOCKET_PARENT_WINDOW}->show_all();
@@ -4228,6 +4443,11 @@ sub _hideEmbedMessages {
 sub _showEmbedMessages {
     my $self = shift;
 
+    if (!$$self{_GUI}{_VTE}) {
+        # Too late, probably ; message window does not exist anymore
+        return;
+    }
+
     # Show messages and hide the embed window
     $$self{_GUI}{_SOCKET_PARENT_WINDOW}->hide();
     $$self{_GUI}{_VTE}->show();
@@ -4240,18 +4460,18 @@ sub _showEmbedMessages {
 
 sub _zoomHandler {
     my $self = shift;
-    my $keyval = shift;
+    my $action = shift;
 
     my $zoom = 0;
     my $scale = $$self{_GUI}{_VTE}->get_font_scale();
 
-    if ($keyval eq 'plus' || $keyval eq 'KP_Add') {
+    if ($action eq 'zoomin') {
         $zoom = 1;
         $scale += 0.1;
-    } elsif ($keyval eq 'minus' || $keyval eq 'KP_Subtract') {
+    } elsif ($action eq 'zoomout') {
         $zoom = 1;
         $scale -= 0.1;
-    } elsif ($keyval eq 'period' || $keyval eq 'KP_Decimal') {
+    } elsif ($action eq 'zoomreset') {
         $zoom = 1;
         $scale = 1;
     }
@@ -4276,7 +4496,59 @@ sub _pasteConnectionPassword {
         my $kpxc = $PACMain::FUNCS{_KEEPASS};
         $pass = $kpxc->applyMask($pass);
     }
-    $self->_pasteToVte($pass, 1);
+    _vteFeedChild($$self{_GUI}{_VTE}, $pass);
+}
+
+sub _checkEmbedWindow {
+    my $self = shift;
+    my $time_to_connect = $self->{_CFG}{'defaults'}{'timeout connect'};
+
+    if (!$$self{_GUI}{_SOCKET}) {
+        # Too late, the socket does not exist anymore
+        $self->{EMBED_CHECK_TIMEOUT_ID} = undef;
+        return 0;
+    }
+
+    if ($$self{_GUI}{_SOCKET}->get_plug_window()) {
+        $self->_hideEmbedMessages();
+        # We found the plugged window, stop timeout
+        $self->{EMBED_CHECK_TIMEOUT_ID} = undef;
+        return 0;
+    }
+
+    if ($time_to_connect > 0 && ($self->{EMBED_CHECK_COUNT}++) * $self->{EMBED_CHECK_TIMEOUT} > 1000 * $time_to_connect) {
+        # We waited too long, force disconnection (if still connected)
+        if ($self->{CONNECTED}) {
+            _vteFeed($$self{_GUI}{_VTE}, "\r\n\n${COL_YELL}WARNING: No window could be connected with expected timeout of $time_to_connect seconds, aborting connection...${COL_RESET}\r\n(note: this timeout can be changed in Preferences > Terminal Options)\r\n");
+            $self->_disconnectTerminal();
+        }
+        # and stop the timeout
+        $self->{EMBED_CHECK_TIMEOUT_ID} = undef;
+        return 0;
+    };
+
+    # Update GUI before querying the size of the embed window
+    Gtk3::main_iteration() while Gtk3::events_pending();
+    $self->_showEmbedMessages();
+
+    # If not yet done, start a timeout that will check again that the embed window
+    # if correctly plugged into the Ásbrú socket
+    if (!defined($self->{EMBED_CHECK_TIMEOUT_ID})) {
+        $self->{EMBED_CHECK_TIMEOUT_ID} = Glib::Timeout->add($self->{EMBED_CHECK_TIMEOUT}, sub {
+            return $self->_checkEmbedWindow();
+        });
+    }
+
+    return 1;
+}
+
+sub _stopEmbedKidnapTimeout {
+    my $self = shift;
+
+    if (defined($$self{_EMBED_KIDNAP})) {
+        Glib::Source->remove($$self{_EMBED_KIDNAP});
+        $$self{_EMBED_KIDNAP} = undef;
+    }
 }
 
 # END: Private functions definitions
@@ -4300,7 +4572,7 @@ Package to create a terminal object with its own windows, event handlers and men
 
 =head2 Internal Variables
 
-    $NPOSX,$NPOSY       Next coordinates to locate the next tiled window when opening a cluster in multiple windows
+    $NPOSX, $NPOSY       Next coordinates to locate the next tiled window when opening a cluster in multiple windows
 
     _CFG                Pointer to configuration object structure
     _UUID               Internal UUID of this terminal in the nodes tree in PACMain
@@ -4370,7 +4642,7 @@ Unlock Terminal
     else
         Create new Window and position on screen
         if Cluster
-            Calculate screen width,height
+            Calculate screen width, height
             Calculate position of next terminal
             Move terminal and size to new position
     Call _updateCFG
@@ -4386,7 +4658,7 @@ Attaches different event signals from Gui elements and the terminal to routines 
 
 =head2 sub _watchConnectionData
 
-    Ignore 'hup','err' signals
+    Ignore 'hup', 'err' signals
     _receiveData    : load data into _SOCKET_BUFFER
     Process command received from attached connection
         CONNECTED              : inform the user we are connected, set icons messages
@@ -4421,15 +4693,6 @@ Validate the socket connection is from Asbru application and not some other proc
 =head2 sub _vteMenu
 
 Display the popup Terminal menu on [shift] - right click
-
-=head2 sub _pasteToVte
-
-Takes information from the clipboard and sends it to the terminal
-
-    if slow : Use _vteFeedChild
-    else {_GUI}{_VTE}->paste_primary
-
-with _vteFeedChild
 
 =head2 sub _setTabColour
 

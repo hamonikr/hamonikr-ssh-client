@@ -3,7 +3,7 @@ package PACPrePostEntry;
 ###############################################################################
 # This file is part of Ásbrú Connection Manager
 #
-# Copyright (C) 2017-2020 Ásbrú Connection Manager team (https://asbru-cm.net)
+# Copyright (C) 2017-2022 Ásbrú Connection Manager team (https://asbru-cm.net)
 # Copyright (C) 2010-2016 David Torrejon Vaquerizas
 #
 # Ásbrú Connection Manager is free software: you can redistribute it and/or
@@ -125,15 +125,25 @@ sub _buildPrePostGUI {
 
     # Build a vbox for:buttons, separator and expect widgets
     $w{vbox} = Gtk3::VBox->new(0, 0);
+    $w{hbox} = Gtk3::HBox->new(1, 0);
 
     # Build a hbuttonbox for widgets actions (add, etc.)
     $w{bbox} = Gtk3::HButtonBox->new();
-    $w{vbox}->pack_start($w{bbox}, 0, 1, 0);
+    $w{vbox}->pack_start($w{hbox}, 0, 1, 0);
+    $w{hbox}->pack_start($w{bbox}, 0, 1, 0);
     $w{bbox}->set_layout('GTK_BUTTONBOX_START');
 
     # Build 'add' button
     $w{btnadd} = Gtk3::Button->new_from_stock('gtk-add');
     $w{bbox}->add($w{btnadd});
+
+    $w{help} = Gtk3::LinkButton->new('https://docs.asbru-cm.net/Manual/Connections/SSH/#pre-post-exec');
+    $w{help}->set_halign('GTK_ALIGN_END');
+    $w{help}->set_label('');
+    $w{help}->set_tooltip_text('Open Online Help');
+    $w{help}->set_always_show_image(1);
+    $w{help}->set_image(Gtk3::Image->new_from_stock('asbru-help', 'button'));
+    $w{hbox}->pack_start($w{help}, 0, 1, 0);
 
     # Build a separator
     $w{sep} = Gtk3::HSeparator->new();
@@ -316,6 +326,7 @@ sub _buildPrePost {
         # Populate with Ásbrú Connection Manager internal variables
         my @int_variables_menu;
         push(@int_variables_menu, {label => "UUID",code => sub {$w{command}->insert_text("<UUID>", -1, $w{command}->get_position);} });
+        push(@int_variables_menu, {label => "SOCKS5_PORT",code => sub {$w{command}->insert_text("<SOCKS5_PORT>",-1, $w{command}->get_position());} });
         push(@int_variables_menu, {label => "TIMESTAMP",code => sub {$w{command}->insert_text("<TIMESTAMP>", -1, $w{command}->get_position);} });
         push(@int_variables_menu, {label => "DATE_Y",code => sub {$w{command}->insert_text("<DATE_Y>", -1, $w{command}->get_position);} });
         push(@int_variables_menu, {label => "DATE_M",code => sub {$w{command}->insert_text("<DATE_M>", -1, $w{command}->get_position);} });
@@ -326,6 +337,7 @@ sub _buildPrePost {
         push(@int_variables_menu, {label => "NAME",code => sub {$w{command}->insert_text("<NAME>", -1, $w{command}->get_position);} });
         push(@int_variables_menu, {label => "TITLE",code => sub {$w{command}->insert_text("<TITLE>", -1, $w{command}->get_position);} });
         push(@int_variables_menu, {label => "IP",code => sub {$w{command}->insert_text("<IP>", -1, $w{command}->get_position);} });
+        push(@int_variables_menu, {label => "PORT",code => sub {$w{command}->insert_text("<PORT>", -1, $w{command}->get_position);} });
         push(@int_variables_menu, {label => "USER",code => sub {$w{command}->insert_text("<USER>", -1, $w{command}->get_position);} });
         push(@int_variables_menu, {label => "PASS",code => sub {$w{command}->insert_text("<PASS>", -1, $w{command}->get_position);} });
         push(@menu_items, {label => 'Internal variables...', submenu => \@int_variables_menu});

@@ -41,11 +41,11 @@
 ![](images/ssh2.png)
 
 + __Programmatically send a string__ : Send a specified regex expression every selected seconds to the terminal.
+    + _Idle Only_: Restart the timer (from `Every X seconds field`) each time the terminal is updated or focused., effectively preventing the string from being sent unless the terminal has been idle for the configured period.
 + __Prepend command__ : Add this command before the ssh command connection string.
 + __Start next script when connection is launched__ : * Pending
 + __Auto save session logs__ : Save session log at the end of the session. Select the location.
-    - Log patter name: Define the pattern to name your session file.
-
+    + _Log pattern name_: Define the pattern to name your session file.
 
 ## Network Settings
 
@@ -105,23 +105,28 @@ This commands will be executed immediately __before__ (Pre) the connection is la
 
 ![](images/ssh9.png)
 
-
 This commands are executed in the local computer, not on the remote terminal.
 
-You may add many commands, and configure which command will be the default, and if Ásbrú should ask before executing it.
+You may add as many commands as needed.  When the option `Ask` is checked, Ásbrú will ask to confirm which command needs to be executed.  When the option `Default` is checked, the command will be proposed to be executed by default.  If both `Ask` and `Default` are unchecked, the command will never be executed.
 
 !!! danger "Important"
     The terminal interaction and login will be frozen until the external application is finished. Or is demonized.
 
-Example, before launching the terminal start a __local__ apache server
+**Variables**
+
+Variable [substitution](../Substitutions.md) can be used to create dynamic commands.
+
+**Example 1**
+
+Before launching the terminal start a __local__ apache server
 
 ![](images/exec9.png)
 
-After closing the terminal, execute pdfshufler
+**Example 2**
+
+After closing the terminal, execute `pdfshufler`
 
 ![](images/exec10.png)
-
-Execution examples, with a gtk application to see the results.
 
 Pre exec is configured to ask, is waiting for you to execute an available command from the list.
 
@@ -144,7 +149,7 @@ We exit the terminal, the terminal is closed and the post exec command is execut
 
 You can create and execute a sequence of automated actions that will be executed during your login process.
 
-+ __Expect__ : Regular expression that defines what patter to wait from the terminal.
++ __Expect__ : Regular expression that defines what pattern to wait from the terminal.
     - __Timeout__ : How long to wait for the pattern and abort if it does not presents.
 + __Send__ : When the pattern has a match, send the next sequence of characters.
     - __Return__ : Add a CR at the end of the string.

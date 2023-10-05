@@ -3,7 +3,7 @@ package PACKeePass;
 ###############################################################################
 # This file is part of Ásbrú Connection Manager
 #
-# Copyright (C) 2017-2020 Ásbrú Connection Manager team (https://asbru-cm.net)
+# Copyright (C) 2017-2022 Ásbrú Connection Manager team (https://asbru-cm.net)
 # Copyright (C) 2010-2016 David Torrejon Vaquerizas
 #
 # Ásbrú Connection Manager is free software: you can redistribute it and/or
@@ -33,11 +33,13 @@ $|++;
 # Standard
 use strict;
 use warnings;
+use version;
 
 use Encode;
 use FindBin qw ($RealBin $Bin $Script);
 use IPC::Open2;
 use IPC::Open3;
+use File::stat;
 
 # GTK
 use Gtk3 '-init';
@@ -54,7 +56,8 @@ use PACTree;
 
 my $KPXC_MP = $ENV{'KPXC_MP'};
 my @KPXC_LIST;
-my %KPXC_CACHE = ();
+my $KPXC_CACHE_TIMESTAMP;
+my %KPXC_CACHE;
 my $CLI = 'keepassxc-cli';
 
 # END: Define GLOBAL CLASS variables
@@ -71,6 +74,15 @@ sub new {
     $self->{cfg} = shift;
     $self->{container} = undef;
     $self->{'last_timestamp'} = '';
+
+    if (!$KPXC_MP) {
+        if ($ENV{'KPXC_MP'}) {
+            $KPXC_MP = $ENV{'KPXC_MP'};
+        } elsif ($$self{cfg}{password}) {
+            $KPXC_MP = $$self{cfg}{password};
+            $ENV{'KPXC_MP'} = $$self{cfg}{password};
+        }
+    }
 
     _setCapabilities($self);
     if ($buildgui) {
@@ -154,7 +166,7 @@ sub getMasterPassword {
             if (!$flg && $msg !~ /ASBRUKeePassXCTEST/) {
                 $KPXC_MP='';
                 $mp = '';
-                _wMessage($parent,"<b>keepassxc-cli message</b>\n\n$msg");
+                _wMessage($parent,"<b>Error keepassxc-cli message</b>\n\n$msg");
             }
         } else {
             last;
@@ -209,7 +221,7 @@ sub getFieldValueFromString {
         $cfg = $self->get_cfg();
     }
     $str =~ s/[<>]//g;
-    ($field, $uid) = split /\|/, $str;
+    ($field, $uid) = split /\|/, $str, 2;
     ($value, $flg) = $self->getFieldValue($field, $uid);
     return ($value, $flg);
 }
@@ -232,13 +244,13 @@ sub applyMask {
 
 sub getFieldValue {
     my ($self, $field, $uid) = @_;
-    my ($pid, $cfg,@err);
+    my ($pid, $cfg, @err);
     my $data='';
     my $flg = 0;
     my @out;
 
     $field = lc($field);
-    if ($KPXC_CACHE{"$field,$uid"}) {
+    if ($self->_hasCacheValue("$field,$uid")) {
         return ($KPXC_CACHE{"$field,$uid"}, 1);
     }
     if ($$self{cfg}) {
@@ -275,7 +287,7 @@ sub getFieldValue {
             $KPXC_CACHE{"$f,$uid"} = $v;
         }
     }
-    if ($KPXC_CACHE{"$field,$uid"}) {
+    if ($self->_hasCacheValue("$field,$uid")) {
         return ($KPXC_CACHE{"$field,$uid"}, 1);
     }
     return ('', 0);
@@ -287,9 +299,9 @@ sub get_cfg {
 
     my %hash;
     $hash{use_keepass} = $$self{frame}{'cbUseKeePass'}->get_active();
-    $hash{database} = $$self{frame}{'fcbKeePassFile'}->get_filename();
-    $hash{pathcli} = $$self{frame}{'fcbCliFile'}->get_filename();
-    $hash{keyfile} = $$self{frame}{'fcbKeePassKeyFile'}->get_filename();
+    $hash{database} = decode('utf8',$$self{frame}{'fcbKeePassFile'}->get_filename());
+    $hash{pathcli} = decode('utf8',$$self{frame}{'fcbCliFile'}->get_filename());
+    $hash{keyfile} = decode('utf8',$$self{frame}{'fcbKeePassKeyFile'}->get_filename());
     if ((!defined $hash{database})||(-d $hash{database})||(!-e $hash{database})) {
         $hash{database} = '';
         $$self{disable_keepassxc} = 1;
@@ -323,21 +335,26 @@ sub listEntries {
 
     if (!$KPXC_MP) {
         # Get Password user
-        getMasterPassword($self, $parent);
+        if ($$self{cfg}{password}) {
+            $KPXC_MP = $$self{cfg}{password};
+            $ENV{'KPXC_MP'} = $$self{cfg}{password};
+        } else {
+            getMasterPassword($self, $parent);
+        }
     }
     # Create the dialog window,
     $w{window}{data} = Gtk3::Dialog->new_with_buttons(
         "KeePassXC Search",
-        undef,
+        $parent,
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok' => 'ok'
     );
     # and setup some dialog properties.
     $w{window}{data}->set_default_response('ok');
-    $w{window}{data}->set_position('center');
     $w{window}{data}->set_icon_name('asbru-app-big');
-    $w{window}{data}->set_resizable(1);
+    $w{window}{data}->set_decorated(0);
+    $w{window}{data}->get_style_context()->add_class('w-entervalue');
     $w{window}{data}->set_default_size(600,400);
     $w{window}{data}->set_resizable(0);
     $w{window}{data}->set_border_width(5);
@@ -401,7 +418,6 @@ sub listEntries {
     });
 
     # Show the window (in a modal fashion)
-    $w{window}{data}->set_transient_for($parent);
     $w{window}{data}->show_all();
 
     my $ok = $w{window}{data}->run();
@@ -459,20 +475,45 @@ sub hasKeePassField {
     my $uuid = shift;
     my $useKeePass = $$cfg{defaults}{keepass}{use_keepass} && $uuid ne '__PAC_SHELL__';
     my $kpxc;
+    my $auth = $$cfg{'environments'}{$uuid}{'auth type'};
 
     if (!$useKeePass) {
         return 0;
     }
 
-    foreach my $fieldName ('user', 'pass', 'passphrase', 'passphrase user', 'ip', 'proxy pass' , 'proxy user') {
-        if ($self->isKeePassMask($$cfg{'environments'}{$uuid}{$fieldName})) {
+    foreach my $fieldName ('user','pass','passphrase','passphrase user','ip','proxy pass','proxy user','jump ip','jump user','jump pass','proxy ip','proxy user','proxy pass') {
+        if ($auth eq 'publickey' && ($fieldName eq 'user' || $fieldName eq 'pass')) {
+            # Skip user and pass if public key authorization
+            next;
+        } elsif ($auth ne 'publickey' && ($fieldName =~ /passphrase/)) {
+            # Skip passphrase if NOT public key authorization
+            next;
+        }
+        if ($$cfg{'environments'}{$uuid}{$fieldName} && $self->isKeePassMask($$cfg{'environments'}{$uuid}{$fieldName})) {
+            return 1;
+        }
+        if (defined $$cfg{'defaults'}{$fieldName}) {
+            if ($$cfg{'defaults'}{$fieldName} && $self->isKeePassMask($$cfg{'defaults'}{$fieldName})) {
+                return 1;
+            }
+        }
+    }
+
+    # Search for keepass mask in expects
+    foreach my $exp (@{$$cfg{'environments'}{$uuid}{'expect'}}) {
+        if ($self->isKeePassMask($$exp{'send'})) {
             return 1;
         }
     }
 
-    foreach my $exp (@{$$cfg{'environments'}{$uuid}{'expect'}}) {
-        if ($self->isKeePassMask($$exp{'send'})) {
-            return 1;
+    # Search for keepass mask in global variables
+    my $gvars = $$cfg{'defaults'}{'global variables'};
+    foreach my $gvar (keys %$gvars) {
+        my $lgvars = $$cfg{'defaults'}{'global variables'}{$gvar};
+        foreach my $val (keys %$lgvars) {
+            if ($$cfg{'defaults'}{'global variables'}{$gvar}{$val} && $self->isKeePassMask($$cfg{'defaults'}{'global variables'}{$gvar}{$val})) {
+                return 1;
+            }
         }
     }
 
@@ -490,13 +531,22 @@ sub _locateEntries {
     my ($pid,$cfg);
     my $timestamp;
     my @out;
+    my $search_command;
+    my $search_term;
 
     if ($$self{cfg}) {
         $cfg = $$self{cfg};
     } else {
         $cfg = $self->get_cfg();
     }
-    $timestamp = (stat($$cfg{database}))[9];
+    if (version->parse($$self{kpxc_version}) >= version->parse("2.7.0")) {
+        $search_command = 'search';
+        $search_term = '';
+    } else {
+        $search_command = 'locate';
+        $search_term = '/';
+    }
+    $timestamp = stat($$cfg{database})->mtime;
     if (!@KPXC_LIST || $$self{'last_timestamp'} != $timestamp) {
         @KPXC_LIST = ();
         $$self{'last_timestamp'} = $timestamp;
@@ -504,7 +554,7 @@ sub _locateEntries {
             no warnings 'once';
             open(SAVERR,">&STDERR");
             open(STDERR,"> /dev/null");
-            $pid = open2(*Reader,*Writer,"$CLI $$self{kpxc_cli} locate $$self{kpxc_keyfile_opt} '$$cfg{database}' '/'");
+            $pid = open2(*Reader,*Writer,"$CLI $$self{kpxc_cli} ${search_command} $$self{kpxc_keyfile_opt} '$$cfg{database}' '${search_term}'");
             print Writer "$KPXC_MP\n";
             close Writer;
             @KPXC_LIST = <Reader>;
@@ -664,11 +714,11 @@ sub _buildKeePassGUI {
     $w{fcbCliFile}->signal_connect('selection-changed' => sub {
         my ($fc) = @_;
         if (defined $fc->get_filename()) {
-            $$self{cfg}{pathcli} = $fc->get_filename();
-            $CLI = $fc->get_filename();
+            $$self{cfg}{pathcli} = decode('utf8',$fc->get_filename());
+            $CLI = decode('utf8',$fc->get_filename());
             $self->_setCapabilities();
             $self->_updateUsage();
-            if ($CLI ne $fc->get_filename()) {
+            if ($CLI ne decode('utf8',$fc->get_filename())) {
                 # Remove selected file name, setCapabilities failed with this file
                 $fc->set_uri("file://$ENV{'HOME'}");
                 $fc->unselect_uri("file://$ENV{'HOME'}");
@@ -735,7 +785,7 @@ sub _setCapabilities {
         return 0;
     }
     if ($$self{_VERBOSE}) {
-        print "DEBUG:KEYPASS: testCapabilities\n";
+        print "DEBUG:KEEPASS: testCapabilities\n";
     }
     if ((defined $$self{cfg})&&($$self{cfg}{pathcli})&&(-e $$self{cfg}{pathcli})) {
         $CLI = $$self{cfg}{pathcli};
@@ -746,13 +796,13 @@ sub _setCapabilities {
     if ($$self{_VERBOSE}) {
         print "DEBUG:KEEPASS: $CLI $$self{kpxc_cli}\n";
     }
-    $$self{kpxc_version} = `$CLI $$self{kpxc_cli} -v 2>/dev/null`;
+    $$self{kpxc_version} = `$ENV{'ASBRU_ENV_FOR_EXTERNAL'} $CLI $$self{kpxc_cli} -v 2>/dev/null`;
     $$self{kpxc_version} =~ s/\n//g;
     if ($$self{kpxc_version} !~ /[0-9]+\.[0-9]+\.[0-9]+/) {
         # Invalid version number, user did not select a valid KeePassXC file
         $$self{kpxc_version} = '';
         $$self{cfg}{pathcli} = '';
-        _wMessage($PACMain::FUNCS{_CONFIG}{_WINDOWCONFIG},"File is not a valid keepassxc-cli binary.");
+        _wMessage($PACMain::FUNCS{_CONFIG}{_WINDOWCONFIG},"<b>Error</b>\n\nFile is not a valid keepassxc-cli binary.");
     }
     if (!$$self{kpxc_version}) {
         if ($CLI eq 'keepassxc-cli') {
@@ -764,7 +814,7 @@ sub _setCapabilities {
             # Test if we have a system wide installation
             $$self{kpxc_cli} = '';
             $CLI = 'keepassxc-cli';
-            $$self{kpxc_version} = `$CLI -v 2>/dev/null`;
+            $$self{kpxc_version} = `$ENV{'ASBRU_ENV_FOR_EXTERNAL'} $CLI -v 2>/dev/null`;
             $$self{kpxc_version} =~ s/\n//g;
             if (!$$self{kpxc_version}) {
                 # We do not have keepassxc-cli available, the user defined is not working
@@ -774,7 +824,7 @@ sub _setCapabilities {
             }
         }
     }
-    $c = `$CLI $$self{kpxc_cli} -h show 2>&1`;
+    $c = `$ENV{'ASBRU_ENV_FOR_EXTERNAL'} $CLI $$self{kpxc_cli} -h show 2>&1`;
     if ($c =~ /--key-file/) {
         $$self{kpxc_keyfile} = '--key-file';
     }
@@ -785,6 +835,34 @@ sub _setCapabilities {
         $$self{kpxc_keyfile_opt} = "$$self{kpxc_keyfile} '$$self{cfg}{keyfile}'";
     }
 }
+
+sub _hasCacheValue {
+    my ($self, $key) = @_;
+    my $cfg;
+    my $ts;
+
+    # Get current modification timestamp of the KeePass database
+    if ($$self{cfg}) {
+        $cfg = $$self{cfg};
+    } else {
+        $cfg = $self->get_cfg();
+    }
+    $ts = stat($$cfg{database})->mtime;
+
+    # Check if the cache should be created or invalidated
+    if (!%KPXC_CACHE || ($KPXC_CACHE_TIMESTAMP && $KPXC_CACHE_TIMESTAMP < $ts)) {
+        %KPXC_CACHE = ();
+        $KPXC_CACHE_TIMESTAMP = $ts;
+    }
+
+    return exists($KPXC_CACHE{$key});
+}
+
+# END: Private functions definitions
+###################################################################
+
+###################################################################
+# START: Other package functions
 
 # Check magic bytes, AppImage magic bytes : 41490200
 sub _getMagicBytes {
@@ -801,7 +879,7 @@ sub _getMagicBytes {
     return substr($data,16,8);
 }
 
-# END: Private functions definitions
+# END: Other package functions
 ###################################################################
 
 1;
@@ -902,6 +980,12 @@ Get keepassxc-cli version numbers and list of available parameters
     --show-protected        Older versions of keepassxc-cli showed by default clear passwords
                             when the show command is called. Later versions requiere this option
     --key-file              This version is capable to use a key-file
+
+=head2 sub _hasCacheValue
+
+Return true if a value already exists in the cache for the given key
+If the cache does not exist ; create a new cache structure
+ If the cache timestamp is older than the database file, invalidate the cache
 
 =head2 sub _getMagicBytes
 
