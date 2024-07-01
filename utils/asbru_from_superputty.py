@@ -188,7 +188,7 @@ elementTemplate = """{uuid}:
     terminal backspace: auto
     terminal character encoding: UTF-8
     terminal emulation: xterm
-    terminal font: Monospace 9
+    terminal font: D2Coding Nerd Font 10
     terminal scrollback lines: 5000
     terminal select words: '-.:_/'
     terminal transparency: 0

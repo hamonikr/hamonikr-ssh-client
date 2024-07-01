@@ -13,7 +13,7 @@ xz -9 asbru-cm_$VERSION.orig.tar
 
 mv asbru-cm_$VERSION.orig.tar.xz ../
 
-dpkg-buildpackage --sign-key=9FA298A1E42665B8
+dpkg-buildpackage -k9EFBD28CA3E3ACE510C591F09FA298A1E42665B8
 
 dpkg-buildpackage -T clean
 

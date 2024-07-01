@@ -120,8 +120,8 @@ require Exporter;
 ###################################################################
 # Define GLOBAL CLASS variables
 
-our $APPNAME = 'Ásbrú Connection Manager';
-our $APPVERSION = '6.4.0';
+our $APPNAME = 'SSH Connection Manager';
+our $APPVERSION = '6.4.0-2';
 our $DEBUG_LEVEL = 1;
 our $ARCH = '';
 my $ARCH_TMP = `$ENV{'ASBRU_ENV_FOR_EXTERNAL'} /bin/uname -m 2>&1`;
@@ -2105,7 +2105,7 @@ sub _cfgSanityCheck {
     $$cfg{'defaults'}{'terminal backspace'} //= 'auto';
     $$cfg{'defaults'}{'terminal transparency'} //= 0;
     $$cfg{'defaults'}{'terminal support transparency'} //= $$cfg{'defaults'}{'terminal transparency'} > 0;
-    $$cfg{'defaults'}{'terminal font'} //= 'Monospace 9';
+    $$cfg{'defaults'}{'terminal font'} //= 'D2Coding Nerd Font 10';
     $$cfg{'defaults'}{'terminal character encoding'} //= 'UTF-8';
     $$cfg{'defaults'}{'terminal scrollback lines'} //= 5000;
     $$cfg{'defaults'}{'terminal windows hsize'} //= 800;
@@ -2242,7 +2242,7 @@ sub _cfgSanityCheck {
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'password prompt'} //= $DEFAULT_PASSWORD_PROMPT;
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'cursor shape'} //= 'block';
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'open in tab'} //= 1;
-    $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal font'} //= 'Monospace 9';
+    $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal font'} //= 'D2Coding Nerd Font 10';
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal backspace'} //= 'auto';
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal select words'} //= '-.:_/';
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal character encoding'} //= 'UTF-8';
@@ -2539,7 +2539,7 @@ sub _cfgSanityCheck {
             $$cfg{'environments'}{$uuid}{'terminal options'}{'password prompt'} = $DEFAULT_PASSWORD_PROMPT;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'cursor shape'}  = 'block';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'open in tab'} = 1;
-            $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal font'} = 'Monospace 9';
+            $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal font'} = 'D2Coding Nerd Font 10';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal select words'} = '-.:_/';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal backspace'} = 'auto';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal character encoding'} = 'UTF-8';
@@ -2562,7 +2562,7 @@ sub _cfgSanityCheck {
             $$cfg{'environments'}{$uuid}{'terminal options'}{'password prompt'} //= $DEFAULT_PASSWORD_PROMPT;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'cursor shape'} //= 'block';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'open in tab'} //= 1;
-            $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal font'} //= 'Monospace 9';
+            $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal font'} //= 'D2Coding Nerd Font 10';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal select words'} //= '-.:_/';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal backspace'} //= 'auto';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal character encoding'} //= 'UTF-8';
