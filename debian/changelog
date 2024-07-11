@@ -1,3 +1,10 @@
+asbru-cm (6.4.0-2+hamonikr2) stable; urgency=medium
+
+  * Release for bookworm arm64
+   - No Change
+
+ -- HamoniKR <pkg@hamonikr.org>  Fri, 12 Jul 2024 02:33:17 +0900
+
 asbru-cm (6.4.0-2+hamonikr1) stable; urgency=medium
 
   * Release for Ubuntu 24.04
