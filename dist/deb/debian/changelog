@@ -2,7 +2,7 @@ asbru-cm (6.4.0-1+hamonikr3) paektu; urgency=medium
 
   [Kevin Kim]
   * Changed default font and node text color
-   - unprotected color: '#f9f9f0f06b6b'
+   - unprotected color mean text on node list
 
  -- HamoniKR <pkg@hamonikr.org>  Sun, 11 Aug 2024 08:19:10 +0900
 

@@ -3,7 +3,7 @@ defaults:
   auto accept key: 1
   auto hide connections list: ''
   back color: '#000000000000'
-  unprotected color: '#f9f9f0f06b6b'
+  unprotected color: '#8f8ff0f0a4a4'
   close terminal on disconnect: ''
   close to tray: 1
   command prompt: '[#%\$>]|\:\/\s*$'
