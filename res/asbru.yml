@@ -3,6 +3,7 @@ defaults:
   auto accept key: 1
   auto hide connections list: ''
   back color: '#000000000000'
+  unprotected color: '#f9f9f0f06b6b'
   close terminal on disconnect: ''
   close to tray: 1
   command prompt: '[#%\$>]|\:\/\s*$'
@@ -38,7 +39,7 @@ defaults:
   start maximized: ''
   tabs in main window: 1
   tabs position: top
-  terminal font: D2Coding Nerd Font 10
+  terminal font: MesloLGS NF 9
   terminal scrollback lines: 5000
   terminal transparency: 0.3
   terminal windows hsize: 1024
