@@ -1,3 +1,10 @@
+asbru-cm (6.4.0-2+hamonikr4) paektu; urgency=medium
+
+  [Kevin Kim]
+  * Change default font to MesloLGS NF 9
+
+ -- HamoniKR <pkg@hamonikr.org>  Thu, 15 Aug 2024 00:22:21 +0900
+
 asbru-cm (6.4.0-2+hamonikr3) paektu; urgency=medium
 
   [Kevin Kim]

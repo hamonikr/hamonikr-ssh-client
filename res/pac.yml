@@ -38,7 +38,7 @@ defaults:
   start maximized: ''
   tabs in main window: 1
   tabs position: top
-  terminal font: D2Coding Nerd Font 10
+  terminal font: MesloLGS NF 9
   terminal scrollback lines: 5000
   terminal transparency: 0.3
   terminal windows hsize: 1024
