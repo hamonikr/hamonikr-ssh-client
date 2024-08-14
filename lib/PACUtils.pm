@@ -2105,7 +2105,7 @@ sub _cfgSanityCheck {
     $$cfg{'defaults'}{'terminal backspace'} //= 'auto';
     $$cfg{'defaults'}{'terminal transparency'} //= 0;
     $$cfg{'defaults'}{'terminal support transparency'} //= $$cfg{'defaults'}{'terminal transparency'} > 0;
-    $$cfg{'defaults'}{'terminal font'} //= 'D2Coding Nerd Font 10';
+    $$cfg{'defaults'}{'terminal font'} //= 'MesloLGS NF 9';
     $$cfg{'defaults'}{'terminal character encoding'} //= 'UTF-8';
     $$cfg{'defaults'}{'terminal scrollback lines'} //= 5000;
     $$cfg{'defaults'}{'terminal windows hsize'} //= 800;
@@ -2157,7 +2157,7 @@ sub _cfgSanityCheck {
     $$cfg{'defaults'}{'show connections tooltips'} //= 0;
     $$cfg{'defaults'}{'hide connections submenu'} //= 0;
     $$cfg{'defaults'}{'tree font'} //= 'Normal';
-    $$cfg{'defaults'}{'info font'} //= 'monospace';
+    $$cfg{'defaults'}{'info font'} //= 'MesloLGS NF 9';
     $$cfg{'defaults'}{'use login shell to connect'} //= 0;
     $$cfg{'defaults'}{'audible bell'} //= 0;
     $$cfg{'defaults'}{'append group name'} //= 1;
@@ -2242,7 +2242,7 @@ sub _cfgSanityCheck {
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'password prompt'} //= $DEFAULT_PASSWORD_PROMPT;
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'cursor shape'} //= 'block';
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'open in tab'} //= 1;
-    $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal font'} //= 'D2Coding Nerd Font 10';
+    $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal font'} //= 'MesloLGS NF 9';
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal backspace'} //= 'auto';
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal select words'} //= '-.:_/';
     $$cfg{'environments'}{'__PAC_SHELL__'}{'terminal options'}{'terminal character encoding'} //= 'UTF-8';
@@ -2539,7 +2539,7 @@ sub _cfgSanityCheck {
             $$cfg{'environments'}{$uuid}{'terminal options'}{'password prompt'} = $DEFAULT_PASSWORD_PROMPT;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'cursor shape'}  = 'block';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'open in tab'} = 1;
-            $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal font'} = 'D2Coding Nerd Font 10';
+            $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal font'} = 'MesloLGS NF 9';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal select words'} = '-.:_/';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal backspace'} = 'auto';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal character encoding'} = 'UTF-8';
@@ -2562,7 +2562,7 @@ sub _cfgSanityCheck {
             $$cfg{'environments'}{$uuid}{'terminal options'}{'password prompt'} //= $DEFAULT_PASSWORD_PROMPT;
             $$cfg{'environments'}{$uuid}{'terminal options'}{'cursor shape'} //= 'block';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'open in tab'} //= 1;
-            $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal font'} //= 'D2Coding Nerd Font 10';
+            $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal font'} //= 'MesloLGS NF 9';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal select words'} //= '-.:_/';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal backspace'} //= 'auto';
             $$cfg{'environments'}{$uuid}{'terminal options'}{'terminal character encoding'} //= 'UTF-8';
