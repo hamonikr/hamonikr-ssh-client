@@ -1,0 +1,1587 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-08-03 23:55+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../lib/PACConfig.pm:130
+msgid "Default Global Options"
+msgstr ""
+
+#: ../lib/PACConfig.pm:161
+msgid "_Reset to DEFAULT values"
+msgstr ""
+
+#: ../lib/PACConfig.pm:185
+msgid "Export config..."
+msgstr ""
+
+#: ../lib/PACMain.pm:352
+msgid "Building GUI..."
+msgstr ""
+
+#: ../lib/PACMain.pm:359
+msgid "Loading Connections..."
+msgstr ""
+
+#: ../lib/PACMain.pm:365
+msgid "Finalizing..."
+msgstr ""
+
+#: ../res/asbru.glade:111
+msgid "Edit Connection"
+msgstr ""
+
+#: ../res/asbru.glade:172
+msgid "<b> Host</b>"
+msgstr ""
+
+#: ../res/asbru.glade:183 ../res/asbru.glade:1984 ../res/asbru.glade:3528
+#: ../res/asbru.glade:4124 ../res/asbru.glade:5192 ../res/asbru.glade:5753
+#: ../res/asbru.glade:6516 ../res/asbru.glade:7929 ../res/asbru.glade:8326
+#: ../res/asbru.glade:8644
+msgid "Help"
+msgstr ""
+
+#: ../res/asbru.glade:188 ../res/asbru.glade:1989 ../res/asbru.glade:3533
+#: ../res/asbru.glade:4129 ../res/asbru.glade:5197 ../res/asbru.glade:5758
+#: ../res/asbru.glade:6521 ../res/asbru.glade:7934 ../res/asbru.glade:8331
+#: ../res/asbru.glade:8649
+msgid "Open Online Help"
+msgstr ""
+
+#: ../res/asbru.glade:202 ../res/asbru.glade:2003 ../res/asbru.glade:8663
+msgid "KeePass"
+msgstr ""
+
+#: ../res/asbru.glade:207 ../res/asbru.glade:2008 ../res/asbru.glade:8668
+msgid "Search KeePass database"
+msgstr ""
+
+#: ../res/asbru.glade:254
+msgid "Method: "
+msgstr ""
+
+#: ../res/asbru.glade:306
+msgid ""
+"If checked, 'sudo' command will be prepended to the connection method, along "
+"with the \"-p <selected_prompt>\" command line option configured in "
+"\"Preferences -> Main Options -> Advanced\", and the also selected password "
+"will be used when that prompt is found"
+msgstr ""
+
+#: ../res/asbru.glade:309 ../res/asbru.glade:350 ../res/asbru.glade:573
+msgid " "
+msgstr ""
+
+#: ../res/asbru.glade:327
+msgid "Run with <span foreground=\"red\"><b>sudo</b></span>"
+msgstr ""
+
+#: ../res/asbru.glade:368
+msgid "Use <i>autossh</i>"
+msgstr ""
+
+#: ../res/asbru.glade:415
+msgid "Host "
+msgstr ""
+
+#: ../res/asbru.glade:429
+msgid "IP or Hostname of the machine to connect to"
+msgstr ""
+
+#: ../res/asbru.glade:456
+msgid " Port "
+msgstr ""
+
+#: ../res/asbru.glade:470
+msgid ""
+"Port number to connect to.\n"
+"\n"
+"For some connection types that support it, port can be left empty or set to "
+"0.  In that case, no port will be explicitely specified and the default port "
+"will be used.  This can be useful if you have your SSH details defined in "
+"your ~/.ssh/config, as an example."
+msgstr ""
+
+#: ../res/asbru.glade:477 ../res/asbru.glade:2128 ../res/asbru.glade:2336
+#: ../res/asbru.glade:8981
+msgid "22"
+msgstr ""
+
+#: ../res/asbru.glade:514
+msgid "TAB / Window Title: "
+msgstr ""
+
+#: ../res/asbru.glade:528
+msgid "TAB/Window title to use with this connection"
+msgstr ""
+
+#: ../res/asbru.glade:579
+msgid "If checked, this session will be executed upon startup"
+msgstr ""
+
+#: ../res/asbru.glade:593
+msgid "Launch at startup"
+msgstr ""
+
+#: ../res/asbru.glade:611
+msgid "Reconnect on disconnection"
+msgstr ""
+
+#: ../res/asbru.glade:617
+msgid ""
+"If checked, reconnect this session when disconnection happens with exit "
+"status <> 0"
+msgstr ""
+
+#: ../res/asbru.glade:632
+msgid "Wait "
+msgstr ""
+
+#: ../res/asbru.glade:645
+msgid ""
+"Wait this amount of milliseconds ( from 0-default to 2000 ) before sending "
+"next keypress.\n"
+"Applies to automated actions:\n"
+"- Autologin (user/pass)\n"
+"- Expect / Execute\n"
+"- Remote command send (macros)\n"
+"- Connections chaining\n"
+"- Paste from clipboard"
+msgstr ""
+
+#: ../res/asbru.glade:654
+msgid "1"
+msgstr ""
+
+#: ../res/asbru.glade:672
+msgid " millisecs for automated char sending"
+msgstr ""
+
+#: ../res/asbru.glade:731
+msgid " <b>Authentication</b> "
+msgstr ""
+
+#: ../res/asbru.glade:767
+msgid "User / Password "
+msgstr ""
+
+#: ../res/asbru.glade:772
+msgid "Use a user name and a password to authenticate to the target server."
+msgstr ""
+
+#: ../res/asbru.glade:785
+msgid "Manual"
+msgstr ""
+
+#: ../res/asbru.glade:790
+msgid ""
+"Do not auto-login nor check for EXPECT.\n"
+"\n"
+"If left blank, the current user name will be used to login on the remote "
+"machine."
+msgstr ""
+
+#: ../res/asbru.glade:833 ../res/asbru.glade:1060
+msgid "User "
+msgstr ""
+
+#: ../res/asbru.glade:846
+msgid ""
+"The user to log in as on the remote machine.\n"
+"\n"
+"Can be left blank to use the currenlty connected user name."
+msgstr ""
+
+#: ../res/asbru.glade:876
+msgid "  Password "
+msgstr ""
+
+#: ../res/asbru.glade:889
+msgid ""
+"Password for provided user name\n"
+"Use <<ASK_PASS>> to use ask user for password on every connection )"
+msgstr ""
+
+#: ../res/asbru.glade:909 ../res/asbru.glade:1127
+msgid "Show"
+msgstr ""
+
+#: ../res/asbru.glade:915 ../res/asbru.glade:1133
+msgid "Show/hide password"
+msgstr ""
+
+#: ../res/asbru.glade:1000 ../res/asbru.glade:9095
+msgid "Private key file "
+msgstr ""
+
+#: ../res/asbru.glade:1014
+msgid ""
+"The SSH private key to use.  If must be a valid existing file.\n"
+"\n"
+"If not specified or invalid, the default SSH private key of your system will "
+"be used.  Typically ~/.ssh/id_rsa."
+msgstr ""
+
+#: ../res/asbru.glade:1020 ../res/asbru.glade:2472 ../res/asbru.glade:9113
+msgid "Select an OpenSSH Private Key"
+msgstr ""
+
+#: ../res/asbru.glade:1030 ../res/asbru.glade:2482 ../res/asbru.glade:9123
+msgid "Clear"
+msgstr ""
+
+#: ../res/asbru.glade:1074
+msgid "Username to use for connecting"
+msgstr ""
+
+#: ../res/asbru.glade:1098
+msgid "  Passphrase "
+msgstr ""
+
+#: ../res/asbru.glade:1112
+msgid "Enter here the passphrase (if needed) for the given public key"
+msgstr ""
+
+#: ../res/asbru.glade:1156
+msgid "Private Key "
+msgstr ""
+
+#: ../res/asbru.glade:1161
+msgid "Use an SSH private to authenticate on the target server."
+msgstr ""
+
+#: ../res/asbru.glade:1189
+msgid ""
+"Use selected auth method exclusively (no fallback nor \"Advanced Options\" "
+"auth bypass)"
+msgstr ""
+
+#: ../res/asbru.glade:1195
+msgid ""
+"Checking this may improve login speed on some systems, but may break "
+"compatibility with SSH agent, Seahorse, ..."
+msgstr ""
+
+#: ../res/asbru.glade:1245
+msgid "<b> Connection Details</b>"
+msgstr ""
+
+#: ../res/asbru.glade:1273
+msgid ""
+"Allows you to send a Perl RegEx string to the connected terminal every given "
+"amount of seconds"
+msgstr ""
+
+#: ../res/asbru.glade:1276
+msgid "Programatically send string"
+msgstr ""
+
+#: ../res/asbru.glade:1312
+msgid "With <RETURN> "
+msgstr ""
+
+#: ../res/asbru.glade:1318
+msgid "Append a \"Return/Intro\" at the end of the given string to be sent"
+msgstr ""
+
+#: ../res/asbru.glade:1333
+msgid "Every (secs):"
+msgstr ""
+
+#: ../res/asbru.glade:1348 ../res/asbru.glade:1667 ../res/asbru.glade:5997
+#: ../res/asbru.glade:7399
+msgid "0"
+msgstr ""
+
+#: ../res/asbru.glade:1363
+msgid "Idle Only"
+msgstr ""
+
+#: ../res/asbru.glade:1368
+msgid ""
+"Restart the timer each time the terminal is updated or focused, effectively "
+"preventing the string from being sent unless the terminal has been idle for "
+"the configured period."
+msgstr ""
+
+#: ../res/asbru.glade:1401
+msgid ""
+"Prepend this command before the string to be launched\n"
+"eg.: putting 'tsocks' in an SSH connection, results in executing:\n"
+"tsocks ssh -l user@10.10.10.10\n"
+"Or(manual): LD_PATH=/my/favourite/path\n"
+"Or(Global Variable): DISPLAY=<GV:DISPLAY>"
+msgstr ""
+
+#: ../res/asbru.glade:1408
+msgid "Prepend command "
+msgstr ""
+
+#: ../res/asbru.glade:1440 ../res/asbru.glade:1518
+msgid "Surround connection command with quotes"
+msgstr ""
+
+#: ../res/asbru.glade:1446 ../res/asbru.glade:1524
+msgid ""
+"If cheked, the resulting connectino command (eg: ssh -L 10123:"
+"localhost:10456 -l user1 10.10.10.1) will be surrounded with double quotes "
+"(\"), in order to provide some more compatibility to the \"Prepend "
+"command\"  (eg: gksudo requires the given command to be quoted)"
+msgstr ""
+
+#: ../res/asbru.glade:1481
+msgid ""
+"Postpend this command after the string to be launched\n"
+"eg.: putting '| tc' in an SSH connection, results in executing:\n"
+"ssh -l user@10.10.10.10 | ct"
+msgstr ""
+
+#: ../res/asbru.glade:1486
+msgid "Postpend command "
+msgstr ""
+
+#: ../res/asbru.glade:1555
+msgid "Start next script when connection is launched "
+msgstr ""
+
+#: ../res/asbru.glade:1612 ../res/asbru.glade:5944
+msgid "Remove CONTROL characters. "
+msgstr ""
+
+#: ../res/asbru.glade:1629 ../res/asbru.glade:5960
+msgid "Add timestamp"
+msgstr ""
+
+#: ../res/asbru.glade:1650 ../res/asbru.glade:1665 ../res/asbru.glade:5980
+#: ../res/asbru.glade:5995
+msgid "0 to keep all session logs"
+msgstr ""
+
+#: ../res/asbru.glade:1651
+msgid " Files to save (0=infinite): "
+msgstr ""
+
+#: ../res/asbru.glade:1699
+msgid "Save in"
+msgstr ""
+
+#: ../res/asbru.glade:1714 ../res/asbru.glade:6041
+msgid "Choose a folder for saving log files"
+msgstr ""
+
+#: ../res/asbru.glade:1748
+msgid " Open folder"
+msgstr ""
+
+#: ../res/asbru.glade:1782 ../res/asbru.glade:6108
+msgid "Logfile name pattern: "
+msgstr ""
+
+#: ../res/asbru.glade:1795 ../res/asbru.glade:6121
+msgid ""
+"Logfile pattern:\n"
+"\n"
+"<UUID> -> UUID for this connection\n"
+"<SOCKS5_PORT> -> Socks5 tunnel port\n"
+"<TIMESTAMP> -> time since epoc\n"
+"<DATE_Y> -> Year(4 digits)\n"
+"<DATE_M> -> Month(2 digits)\n"
+"<DATE_D> -> Day(2 digits)\n"
+"<TIME_H> -> Hour (24h, 2 digits)\n"
+"<TIME_M> -> Minute(2 digits)\n"
+"<TIME_S> -> Seconds(2 digits)\n"
+"<NAME> -> Connection's name\n"
+"<TITLE> -> Connections's title\n"
+"<IP> -> IP/host for first jump\n"
+"<USER> -> Username for first jump\n"
+msgstr ""
+
+#: ../res/asbru.glade:1812 ../res/asbru.glade:6138
+msgid ""
+"<UUID>_<SOCKS5_PORT>_<NAME>_<DATE_Y><DATE_M><DATE_D>_<TIME_H><TIME_M><TIME_S>."
+"txt"
+msgstr ""
+
+#: ../res/asbru.glade:1836 ../res/asbru.glade:6162
+msgid "Auto save Session logs"
+msgstr ""
+
+#: ../res/asbru.glade:1865
+msgid "Connection UUID: "
+msgstr ""
+
+#: ../res/asbru.glade:1898
+msgid "Get Command line"
+msgstr ""
+
+#: ../res/asbru.glade:1935
+msgid "<b> Advanced Parameters</b>"
+msgstr ""
+
+#: ../res/asbru.glade:1966
+msgid "Use global proxy options"
+msgstr ""
+
+#: ../res/asbru.glade:1970
+msgid ""
+"If selected, use settings defined in the Preferences > Network Settings."
+msgstr ""
+
+#: ../res/asbru.glade:2029
+msgid "Use a direct connection"
+msgstr ""
+
+#: ../res/asbru.glade:2033
+msgid ""
+"If selected, ignore any settings defined in the Preferences > Network "
+"Settings and do not use any intermediate proxy or jump host to connect to "
+"the destination."
+msgstr ""
+
+#: ../res/asbru.glade:2052
+msgid "Use a SOCKS proxy"
+msgstr ""
+
+#: ../res/asbru.glade:2056
+msgid ""
+"SOCKS is an Internet protocol that exchanges network packets between a "
+"client and server through a proxy server."
+msgstr ""
+
+#: ../res/asbru.glade:2088 ../res/asbru.glade:8736
+msgid "Host name or IP address of the SOCKS proxy"
+msgstr ""
+
+#: ../res/asbru.glade:2100 ../res/asbru.glade:2309 ../res/asbru.glade:8748
+#: ../res/asbru.glade:8954
+msgid "IP / Host"
+msgstr ""
+
+#: ../res/asbru.glade:2145 ../res/asbru.glade:2352 ../res/asbru.glade:8788
+#: ../res/asbru.glade:8994
+msgid "Port"
+msgstr ""
+
+#: ../res/asbru.glade:2169 ../res/asbru.glade:8812
+msgid "Proxy user name"
+msgstr ""
+
+#: ../res/asbru.glade:2183 ../res/asbru.glade:2389 ../res/asbru.glade:8825
+#: ../res/asbru.glade:9031
+msgid "User"
+msgstr ""
+
+#: ../res/asbru.glade:2207 ../res/asbru.glade:8849 ../res/asbru.glade:9055
+msgid "Proxy password"
+msgstr ""
+
+#: ../res/asbru.glade:2222 ../res/asbru.glade:2427 ../res/asbru.glade:8863
+#: ../res/asbru.glade:9069
+msgid "Password"
+msgstr ""
+
+#: ../res/asbru.glade:2253
+msgid "Use a Jump Host"
+msgstr ""
+
+#: ../res/asbru.glade:2257
+msgid ""
+"If selected, use a jump host for this connection.\n"
+"\n"
+"An alternative to SSH tunneling to access internal machines through gateway."
+msgstr ""
+
+#: ../res/asbru.glade:2297
+msgid "Host name or IP address of the jump host"
+msgstr ""
+
+#: ../res/asbru.glade:2376 ../res/asbru.glade:2413 ../res/asbru.glade:9018
+msgid "Host server user"
+msgstr ""
+
+#: ../res/asbru.glade:2454
+msgid "Private key file: "
+msgstr ""
+
+#: ../res/asbru.glade:2468 ../res/asbru.glade:9109
+msgid "SSH private key to use to connect to the jump server"
+msgstr ""
+
+#: ../res/asbru.glade:2486 ../res/asbru.glade:9127
+msgid "Remove any selected private key"
+msgstr ""
+
+#: ../res/asbru.glade:2496
+msgid "Pseudo jump server"
+msgstr ""
+
+#: ../res/asbru.glade:2500
+msgid ""
+"Do not use -J option\n"
+"Connect to server and open a new local connection instead"
+msgstr ""
+
+#: ../res/asbru.glade:2556
+msgid "<b>Network Settings</b>"
+msgstr ""
+
+#: ../res/asbru.glade:2599
+msgid "<b>Connection</b>"
+msgstr ""
+
+#: ../res/asbru.glade:2634
+msgid " Connection specific options"
+msgstr ""
+
+#: ../res/asbru.glade:2666 ../res/asbru.glade:2679
+msgid "Execute local commands AFTER disconnected"
+msgstr ""
+
+#: ../res/asbru.glade:2680
+msgid "Options"
+msgstr ""
+
+#: ../res/asbru.glade:2715
+msgid " Pre-connections execute"
+msgstr ""
+
+#: ../res/asbru.glade:2748
+msgid "Execute commands LOCALLY BEFORE the connections is launched"
+msgstr ""
+
+#: ../res/asbru.glade:2749
+msgid "Pre Exec"
+msgstr ""
+
+#: ../res/asbru.glade:2784
+msgid " Post-connections execute"
+msgstr ""
+
+#: ../res/asbru.glade:2816
+msgid "Execute commands LOCALLY AFTER disconnection"
+msgstr ""
+
+#: ../res/asbru.glade:2817
+msgid "Post Exec"
+msgstr ""
+
+#: ../res/asbru.glade:2852
+msgid " Expect and Execute"
+msgstr ""
+
+#: ../res/asbru.glade:2884
+msgid "Expect"
+msgstr ""
+
+#: ../res/asbru.glade:2919
+msgid " Remote commands list"
+msgstr ""
+
+#: ../res/asbru.glade:2952
+msgid "Remote Macros"
+msgstr ""
+
+#: ../res/asbru.glade:2987
+msgid " Local commands list"
+msgstr ""
+
+#: ../res/asbru.glade:3020
+msgid "Local Macros"
+msgstr ""
+
+#: ../res/asbru.glade:3055
+msgid " User defined Variables"
+msgstr ""
+
+#: ../res/asbru.glade:3086
+msgid "User Variables"
+msgstr ""
+
+#: ../res/asbru.glade:3135
+msgid " <b>Terminal Options</b>"
+msgstr ""
+
+#: ../res/asbru.glade:3166 ../res/asbru.glade:8275
+msgid "Terminal Options"
+msgstr ""
+
+#: ../res/asbru.glade:3207
+msgid "label"
+msgstr ""
+
+#: ../res/asbru.glade:3253 ../res/asbru.glade:9656
+msgid "_Close without saving"
+msgstr ""
+
+#: ../res/asbru.glade:3281 ../res/asbru.glade:9681
+msgid "Save current config"
+msgstr ""
+
+#: ../res/asbru.glade:3302 ../res/asbru.glade:9702
+msgid "_Save and Close"
+msgstr ""
+
+#: ../res/asbru.glade:3381 ../res/asbru.glade:3418
+msgid "Preferences"
+msgstr ""
+
+#: ../res/asbru.glade:3466
+msgid "<b>Main Window Layout (*)</b>"
+msgstr ""
+
+#: ../res/asbru.glade:3483
+msgid "Traditional"
+msgstr ""
+
+#: ../res/asbru.glade:3484
+msgid "Compact"
+msgstr ""
+
+#: ../res/asbru.glade:3497
+msgid "<b>Icons Theme (*)</b>"
+msgstr ""
+
+#: ../res/asbru.glade:3514
+msgid "default"
+msgstr ""
+
+#: ../res/asbru.glade:3515
+msgid "asbru-color"
+msgstr ""
+
+#: ../res/asbru.glade:3516
+msgid "asbru-dark"
+msgstr ""
+
+#: ../res/asbru.glade:3517
+msgid "system"
+msgstr ""
+
+#: ../res/asbru.glade:3588
+msgid "Maximized"
+msgstr ""
+
+#: ../res/asbru.glade:3605
+msgid "With last size"
+msgstr ""
+
+#: ../res/asbru.glade:3622
+msgid "Iconified in 'systray'"
+msgstr ""
+
+#: ../res/asbru.glade:3638
+msgid "Start at session startup"
+msgstr ""
+
+#: ../res/asbru.glade:3660
+msgid "<b>At start</b> "
+msgstr ""
+
+#: ../res/asbru.glade:3688
+msgid "Hide to tray instead of closing"
+msgstr ""
+
+#: ../res/asbru.glade:3705
+msgid "Confirm exit"
+msgstr ""
+
+#: ../res/asbru.glade:3711
+msgid "If checked, always ask confirmation before quiting the application."
+msgstr ""
+
+#: ../res/asbru.glade:3723
+msgid "Auto save on exit"
+msgstr ""
+
+#: ../res/asbru.glade:3729
+msgid ""
+"If checked, any configuration changes will be automatically saved before "
+"stopping the application.\n"
+"\n"
+"If you have the option \"Automatically save every configuration change\" "
+"checked, this option is not relevant."
+msgstr ""
+
+#: ../res/asbru.glade:3743
+msgid "Automatically save every configuration change"
+msgstr ""
+
+#: ../res/asbru.glade:3767
+msgid "<b>At exit</b>"
+msgstr ""
+
+#: ../res/asbru.glade:3803
+msgid "Protect with password"
+msgstr ""
+
+#: ../res/asbru.glade:3823
+msgid "Set..."
+msgstr ""
+
+#: ../res/asbru.glade:3837
+msgid "Ask to restore from Tray"
+msgstr ""
+
+#: ../res/asbru.glade:3867
+msgid "Force split tabs to 50%"
+msgstr ""
+
+#: ../res/asbru.glade:3884
+msgid "Hide on connection"
+msgstr ""
+
+#: ../res/asbru.glade:3905
+msgid "Auto-accept or delete unknown or offending SSH keys"
+msgstr ""
+
+#: ../res/asbru.glade:3924
+msgid ""
+"  (see <b>Host-key</b> and <b>Remote host key</b> on TAB '<i>Advanced</i>')"
+msgstr ""
+
+#: ../res/asbru.glade:3943
+msgid "Automatically  append group name to title for new connections"
+msgstr ""
+
+#: ../res/asbru.glade:3961
+msgid "Show favourites connections on Unity's Launcher  right-click menu"
+msgstr ""
+
+#: ../res/asbru.glade:3980 ../res/asbru.glade:5123 ../res/asbru.glade:7811
+msgid "<i>(*) Requires restart to take effect</i>"
+msgstr ""
+
+#: ../res/asbru.glade:4012 ../res/asbru.glade:6468 ../res/asbru.glade:8498
+msgid "<b> Behaviour</b>"
+msgstr ""
+
+#: ../res/asbru.glade:4043
+msgid "<b>Start on</b>"
+msgstr ""
+
+#: ../res/asbru.glade:4056
+msgid "Connections"
+msgstr ""
+
+#: ../res/asbru.glade:4073
+msgid "Favourites"
+msgstr ""
+
+#: ../res/asbru.glade:4090
+msgid "History"
+msgstr ""
+
+#: ../res/asbru.glade:4107
+msgid "Clusters"
+msgstr ""
+
+#: ../res/asbru.glade:4169
+msgid "Show screenshots"
+msgstr ""
+
+#: ../res/asbru.glade:4186
+msgid "Show statistics"
+msgstr ""
+
+#: ../res/asbru.glade:4215
+msgid "Always show Tray icon"
+msgstr ""
+
+#: ../res/asbru.glade:4237
+msgid "Use Black & White tray icon (*) "
+msgstr ""
+
+#: ../res/asbru.glade:4285
+msgid "Mouse selection copies content to global clipboard"
+msgstr ""
+
+#: ../res/asbru.glade:4290
+msgid "not just primary clipboard"
+msgstr ""
+
+#: ../res/asbru.glade:4304
+msgid "Allow more than one instance to run at the same time"
+msgstr ""
+
+#: ../res/asbru.glade:4350
+msgid "Show connections on (*) "
+msgstr ""
+
+#: ../res/asbru.glade:4381 ../res/asbru.glade:7025
+msgid " Left"
+msgstr ""
+
+#: ../res/asbru.glade:4429
+msgid " Right "
+msgstr ""
+
+#: ../res/asbru.glade:4471
+msgid "Show connections tooltips"
+msgstr ""
+
+#: ../res/asbru.glade:4488
+msgid "Show  lines in connections tree"
+msgstr ""
+
+#: ../res/asbru.glade:4517
+msgid "Enable overlay scrolling for connections tree"
+msgstr ""
+
+#: ../res/asbru.glade:4522
+msgid ""
+"If enabled, the scrollbars are only added as traditional widgets when a "
+"mouse is present. Otherwise, they are overlayed on top of the content, as "
+"narrow indicators."
+msgstr ""
+
+#: ../res/asbru.glade:4536
+msgid "Show tree titles"
+msgstr ""
+
+#: ../res/asbru.glade:4541
+msgid ""
+"If enabled, the title of the currently shown tree (Connections, History, "
+"Clusters, ...) will be shown.\n"
+"\n"
+"Otherwise, only the icon will be shown and save screen space."
+msgstr ""
+
+#: ../res/asbru.glade:4585
+msgid "Font for "
+msgstr ""
+
+#: ../res/asbru.glade:4602
+msgid "Info tab"
+msgstr ""
+
+#: ../res/asbru.glade:4618 ../res/asbru.glade:4649
+msgid "Pick a Font for the Connections Tree"
+msgstr ""
+
+#: ../res/asbru.glade:4633
+msgid "Connection list"
+msgstr ""
+
+#: ../res/asbru.glade:4674
+msgid "Color for "
+msgstr ""
+
+#: ../res/asbru.glade:4694 ../res/asbru.glade:4794
+msgid "Select the fore/background color of Protected tree nodes"
+msgstr ""
+
+#: ../res/asbru.glade:4716 ../res/asbru.glade:4816
+msgid "Foreground"
+msgstr ""
+
+#: ../res/asbru.glade:4733 ../res/asbru.glade:4833
+msgid "Background"
+msgstr ""
+
+#: ../res/asbru.glade:4777
+msgid "Unprotected nodes (*)"
+msgstr ""
+
+#: ../res/asbru.glade:4877
+msgid "Protected nodes (*)"
+msgstr ""
+
+#: ../res/asbru.glade:4932
+msgid "Hide connections list (on terminal open)"
+msgstr ""
+
+#: ../res/asbru.glade:4938
+msgid ""
+"If checked, the connections list will be hidden when a new terminal is "
+"open.  This can be useful to increase the space usable for the tabbed "
+"terminals."
+msgstr ""
+
+#: ../res/asbru.glade:4951
+msgid "Auto hide main button bar (on terminal open)"
+msgstr ""
+
+#: ../res/asbru.glade:4957
+msgid ""
+"If checked, this option will hide the the button bar when on a terminal tab "
+"(increasing the vertical space usable for the terminal)"
+msgstr ""
+
+#: ../res/asbru.glade:4977
+msgid "Auto show/hide when entering/leaving connections list"
+msgstr ""
+
+#: ../res/asbru.glade:4983
+msgid ""
+"If checked, the connections list will be shown/hidden when the mouse enters/"
+"leaves the connections list area."
+msgstr ""
+
+#: ../res/asbru.glade:5000
+msgid "Put Terminal TABS in Main Window (*)"
+msgstr ""
+
+#: ../res/asbru.glade:5006
+msgid ""
+"If unchecked, every terminal will be opened by default in a separate window"
+msgstr ""
+
+#: ../res/asbru.glade:5054
+msgid ""
+"Use full names (Local Forwarding, Remote Forwarding, Dynamic Forwarding)"
+msgstr ""
+
+#: ../res/asbru.glade:5071
+msgid "Use abreviatures (-L, -R, -D)"
+msgstr ""
+
+#: ../res/asbru.glade:5099
+msgid "Show port forwarding information in status bar"
+msgstr ""
+
+#: ../res/asbru.glade:5105
+msgid ""
+"If checked, show port forwarding information in status bar when connected"
+msgstr ""
+
+#: ../res/asbru.glade:5158 ../res/asbru.glade:7845 ../res/asbru.glade:8544
+msgid "<b> Look and Feel</b>"
+msgstr ""
+
+#: ../res/asbru.glade:5229
+msgid ""
+"Example:\n"
+"\"Are you sure you want continue connecting (yes/no)? \"\n"
+"Separate in parenthesis both the \"yes\" and \"no\" answers, so that\n"
+"the first parenthesis refers to \"yes\" and second to \"no\""
+msgstr ""
+
+#: ../res/asbru.glade:5264
+msgid ""
+"Example:\n"
+"\"WARNING: Offending key in /home/user/.ssh/known_hosts:57\"\n"
+"Separate in parenthesis both the \"filename\" and \"linenumber\" fields, so "
+"that\n"
+"the first parenthesis refers to \"filename\" and second to \"linenumber\""
+msgstr ""
+
+#: ../res/asbru.glade:5297
+msgid ""
+"Example:\n"
+"\"Press any key to continue\"\n"
+msgstr ""
+
+#: ../res/asbru.glade:5341
+msgid "PASSWORD prompt "
+msgstr ""
+
+#: ../res/asbru.glade:5355
+msgid "USERNAME prompt "
+msgstr ""
+
+#: ../res/asbru.glade:5368
+msgid "Command prompt "
+msgstr ""
+
+#: ../res/asbru.glade:5381
+msgid "Remote host key changed "
+msgstr ""
+
+#: ../res/asbru.glade:5394
+msgid "Select-by-word characters "
+msgstr ""
+
+#: ../res/asbru.glade:5407
+msgid "Host-key verification string "
+msgstr ""
+
+#: ../res/asbru.glade:5420
+msgid "Press any key to continue "
+msgstr ""
+
+#: ../res/asbru.glade:5447
+msgid "<b>sudo</b> password prompt "
+msgstr ""
+
+#: ../res/asbru.glade:5464
+msgid ""
+"Prompt to expect when using 'sudo' with connection, like in:\n"
+"sudo -p sudo_prompt_string ..."
+msgstr ""
+
+#: ../res/asbru.glade:5467
+msgid "__PAC__SUDO__PROMPT__"
+msgstr ""
+
+#: ../res/asbru.glade:5482
+msgid " , <b>sudo</b> password "
+msgstr ""
+
+#: ../res/asbru.glade:5498
+msgid "'sudo' password for this user"
+msgstr ""
+
+#: ../res/asbru.glade:5501
+msgid "<<ASK_PASS>>"
+msgstr ""
+
+#: ../res/asbru.glade:5514
+msgid "show"
+msgstr ""
+
+#: ../res/asbru.glade:5556
+msgid "Internal viewer"
+msgstr ""
+
+#: ../res/asbru.glade:5577
+msgid ""
+"The screenshot's file name will be appended at the end of the given command"
+msgstr ""
+
+#: ../res/asbru.glade:5580
+msgid "External viewer"
+msgstr ""
+
+#: ../res/asbru.glade:5601
+msgid "/usr/bin/xdg-open"
+msgstr ""
+
+#: ../res/asbru.glade:5627
+msgid "When opening screenshots, use "
+msgstr ""
+
+#: ../res/asbru.glade:5663 ../res/asbru.glade:8233
+msgid "<b> Advanced</b>"
+msgstr ""
+
+#: ../res/asbru.glade:5701
+msgid "Main Options"
+msgstr ""
+
+#: ../res/asbru.glade:5733
+msgid ""
+"Close Terminal on disconnection: close container (TAB or Window) when "
+"connection is closed"
+msgstr ""
+
+#: ../res/asbru.glade:5739
+msgid ""
+"If checked, any disconnected terminal TAB/Window will be automatically closed"
+msgstr ""
+
+#: ../res/asbru.glade:5779
+msgid ""
+"Auto unsplit disconnected Terminals: unsplit disconnected terminal if "
+"already splitted"
+msgstr ""
+
+#: ../res/asbru.glade:5785 ../res/asbru.glade:6548
+msgid ""
+"If checked, any disconnected terminal in a splitted window will be directly "
+"unsplitted to its own TAB/Window"
+msgstr ""
+
+#: ../res/asbru.glade:5818
+msgid "Time to connect "
+msgstr ""
+
+#: ../res/asbru.glade:5854
+msgid " Expect Cmd exec "
+msgstr ""
+
+#: ../res/asbru.glade:5895
+msgid "<b>Timeouts (seconds)</b>"
+msgstr ""
+
+#: ../res/asbru.glade:5982
+msgid " Files to save "
+msgstr ""
+
+#: ../res/asbru.glade:6027
+msgid "Save in "
+msgstr ""
+
+#: ../res/asbru.glade:6075
+msgid "Open Folder"
+msgstr ""
+
+#: ../res/asbru.glade:6234
+msgid "When closing last TAB "
+msgstr ""
+
+#: ../res/asbru.glade:6245
+msgid "Do nothing  "
+msgstr ""
+
+#: ../res/asbru.glade:6262
+msgid "Close  "
+msgstr ""
+
+#: ../res/asbru.glade:6279
+msgid "Hide"
+msgstr ""
+
+#: ../res/asbru.glade:6307
+msgid "Tabs"
+msgstr ""
+
+#: ../res/asbru.glade:6330
+msgid "Windows"
+msgstr ""
+
+#: ../res/asbru.glade:6351
+msgid "Size in Pixels"
+msgstr ""
+
+#: ../res/asbru.glade:6357
+msgid "Width "
+msgstr ""
+
+#: ../res/asbru.glade:6371
+msgid "600"
+msgstr ""
+
+#: ../res/asbru.glade:6387
+msgid "  Height "
+msgstr ""
+
+#: ../res/asbru.glade:6401
+msgid "400"
+msgstr ""
+
+#: ../res/asbru.glade:6435
+msgid "<b>Open NEW connections on</b>"
+msgstr ""
+
+#: ../res/asbru.glade:6497
+msgid "Start Terminals maximized: maximize either TABBED or OWN window"
+msgstr ""
+
+#: ../res/asbru.glade:6503
+msgid "If checked, Terminals will be maximized on connect"
+msgstr ""
+
+#: ../res/asbru.glade:6542
+msgid "Show status bar on every terminal"
+msgstr ""
+
+#: ../res/asbru.glade:6561
+msgid "Change main window title with terminal title"
+msgstr ""
+
+#: ../res/asbru.glade:6567
+msgid "If checked, main window title takes terminal title"
+msgstr ""
+
+#: ../res/asbru.glade:6583
+msgid ""
+"Requires restarting every opened connection (closing and starting)\n"
+"Changes apply to next opened connections, not current"
+msgstr ""
+
+#: ../res/asbru.glade:6589
+msgid "Show MACROS: "
+msgstr ""
+
+#: ../res/asbru.glade:6599
+msgid "Never  "
+msgstr ""
+
+#: ../res/asbru.glade:6616
+msgid "In combo box  "
+msgstr ""
+
+#: ../res/asbru.glade:6633
+msgid "As buttons  "
+msgstr ""
+
+#: ../res/asbru.glade:6650
+msgid "Show GLOBAL commands in terminals"
+msgstr ""
+
+#: ../res/asbru.glade:6715
+msgid "Connected color"
+msgstr ""
+
+#: ../res/asbru.glade:6734 ../res/asbru.glade:7141
+msgid "Pick a FOREGROUND Color"
+msgstr ""
+
+#: ../res/asbru.glade:6758
+msgid "Disconnected color"
+msgstr ""
+
+#: ../res/asbru.glade:6777 ../res/asbru.glade:6820 ../res/asbru.glade:7171
+msgid "Pick a BACKGROUND Color"
+msgstr ""
+
+#: ../res/asbru.glade:6801
+msgid "New data color"
+msgstr ""
+
+#: ../res/asbru.glade:6885
+msgid " Right"
+msgstr ""
+
+#: ../res/asbru.glade:6932
+msgid " Top"
+msgstr ""
+
+#: ../res/asbru.glade:6978
+msgid " Bottom"
+msgstr ""
+
+#: ../res/asbru.glade:7066
+msgid "Tabs position"
+msgstr ""
+
+#: ../res/asbru.glade:7085
+msgid "<b>Tabs</b>"
+msgstr ""
+
+#: ../res/asbru.glade:7123
+msgid "Text color"
+msgstr ""
+
+#: ../res/asbru.glade:7154
+msgid "Back color"
+msgstr ""
+
+#: ../res/asbru.glade:7184
+msgid "Bold Color"
+msgstr ""
+
+#: ../res/asbru.glade:7201
+msgid "Pick a BOLD Color"
+msgstr ""
+
+#: ../res/asbru.glade:7225
+msgid "Bold is"
+msgstr ""
+
+#: ../res/asbru.glade:7238
+msgid "also bright"
+msgstr ""
+
+#: ../res/asbru.glade:7256
+msgid "same as text"
+msgstr ""
+
+#: ../res/asbru.glade:7286
+msgid "Font"
+msgstr ""
+
+#: ../res/asbru.glade:7307
+msgid "Pick a Font for the Terminal"
+msgstr ""
+
+#: ../res/asbru.glade:7332
+msgid "Cursor shape"
+msgstr ""
+
+#: ../res/asbru.glade:7352
+msgid "block"
+msgstr ""
+
+#: ../res/asbru.glade:7353
+msgid "ibeam"
+msgstr ""
+
+#: ../res/asbru.glade:7354
+msgid "underline"
+msgstr ""
+
+#: ../res/asbru.glade:7378
+msgid "Scrollback lines"
+msgstr ""
+
+#: ../res/asbru.glade:7394
+msgid ""
+"If positive, sets the length of the scrollback buffer used by the terminal.\n"
+"If 0, disables the scrollback buffer.\n"
+"If -1, means an \"infinitive scrollback\"."
+msgstr ""
+
+#: ../res/asbru.glade:7429
+msgid "Transparency (*)"
+msgstr ""
+
+#: ../res/asbru.glade:7445
+msgid ""
+"If checked, transparency is supported for any terminals and you can specify "
+"here the default transparency level.\n"
+"\n"
+"When checked for the first time, a restart of the application is required to "
+"take effect.\n"
+"\n"
+"If unchecked, transparency is not supported.\n"
+"\n"
+"If you don't use transparency, leave ths option unchecked as it will "
+"slightly improve rendering performances."
+msgstr ""
+
+#: ../res/asbru.glade:7495
+msgid "Colors"
+msgstr ""
+
+#: ../res/asbru.glade:7789
+msgid "<b>Terminal UI</b>"
+msgstr ""
+
+#: ../res/asbru.glade:7879
+msgid "Character encoding"
+msgstr ""
+
+#: ../res/asbru.glade:7918
+msgid "encoding description"
+msgstr ""
+
+#: ../res/asbru.glade:7962
+msgid "Backspace"
+msgstr ""
+
+#: ../res/asbru.glade:7978
+msgid "auto"
+msgstr ""
+
+#: ../res/asbru.glade:7979
+msgid "ascii-backspace"
+msgstr ""
+
+#: ../res/asbru.glade:7980
+msgid "ascii-delete"
+msgstr ""
+
+#: ../res/asbru.glade:7981
+msgid "delete-sequence"
+msgstr ""
+
+#: ../res/asbru.glade:7982
+msgid "tty"
+msgstr ""
+
+#: ../res/asbru.glade:8004
+msgid "Expect DEBUG"
+msgstr ""
+
+#: ../res/asbru.glade:8010
+msgid ""
+"If checked, lots of debug info will be output on every terminal. It will "
+"also save a .yml (YAML) config faile is \"Save\" button is clicked. BEWARE!! "
+"This option will make appear plain text passwords!!"
+msgstr ""
+
+#: ../res/asbru.glade:8026
+msgid ""
+"<span color=\"#888888\"><i>make Expect object show information on what's "
+"going on, in order to aid in debugging</i></span>"
+msgstr ""
+
+#: ../res/asbru.glade:8048
+msgid "Hide Connections submenu"
+msgstr ""
+
+#: ../res/asbru.glade:8054
+msgid ""
+"This options allows you (if unchecked) to prevent the Connections submenu "
+"from appearing when right-click on any terminal. That will speed up showing "
+"the right-click submenu"
+msgstr ""
+
+#: ../res/asbru.glade:8070
+msgid ""
+"<span color=\"#888888\"><i>if <b>unchecked</b>, there may be big delays to "
+"show right-click submenu</i></span>"
+msgstr ""
+
+#: ../res/asbru.glade:8088
+msgid "Audible Bell"
+msgstr ""
+
+#: ../res/asbru.glade:8105
+msgid "Confirm Chains selection / execution"
+msgstr ""
+
+#: ../res/asbru.glade:8111
+msgid "If checked, a confirmation window will popup when chaining executions"
+msgstr ""
+
+#: ../res/asbru.glade:8128
+msgid "Skip first Chain expect"
+msgstr ""
+
+#: ../res/asbru.glade:8134
+msgid ""
+"If checked, first expect in the chain will be skipped (ie: skip any command "
+"prompt not matching the actual one)"
+msgstr ""
+
+#: ../res/asbru.glade:8150
+msgid ""
+"<span color=\"#888888\"><i>which uses to be a <b>command prompt</b> expect "
+"command</i></span>"
+msgstr ""
+
+#: ../res/asbru.glade:8172
+msgid "Use login shell to start connections"
+msgstr ""
+
+#: ../res/asbru.glade:8192
+msgid ""
+"<span color=\"#888888\"><i>if checked, it may resolve some problems with "
+"<b>ENV</b>ironment varibles</i></span>"
+msgstr ""
+
+#: ../res/asbru.glade:8309
+msgid "Start a shell upon startup"
+msgstr ""
+
+#: ../res/asbru.glade:8359
+msgid "Shell Binary"
+msgstr ""
+
+#: ../res/asbru.glade:8374
+msgid "/bin/bash"
+msgstr ""
+
+#: ../res/asbru.glade:8401
+msgid "Shell Options"
+msgstr ""
+
+#: ../res/asbru.glade:8416
+msgid "-login"
+msgstr ""
+
+#: ../res/asbru.glade:8443
+msgid "Initial Directory"
+msgstr ""
+
+#: ../res/asbru.glade:8458
+msgid "$HOME"
+msgstr ""
+
+#: ../res/asbru.glade:8586
+msgid "Local Shell Options"
+msgstr ""
+
+#: ../res/asbru.glade:8623
+msgid "Do not use proxy"
+msgstr ""
+
+#: ../res/asbru.glade:8627
+msgid ""
+"If selected, do not use any intermediate proxy or jump host to connect to "
+"the destination.\n"
+"                            \n"
+"For each connection, it is still possible to define a particular proxy or "
+"jump host.\n"
+msgstr ""
+
+#: ../res/asbru.glade:8694
+msgid "SOCKS proxy"
+msgstr ""
+
+#: ../res/asbru.glade:8699
+msgid ""
+"If selected, use a SOCKS proxy for all connections.\n"
+"\n"
+"SOCKS is an Internet protocol that exchanges network packets between a "
+"client and server through a proxy server.\n"
+"\n"
+"For all other types of connection, this setting will be ignored.\n"
+msgstr ""
+
+#: ../res/asbru.glade:8775
+msgid "5000"
+msgstr ""
+
+#: ../res/asbru.glade:8895
+msgid "Use Jump Server"
+msgstr ""
+
+#: ../res/asbru.glade:8899
+msgid ""
+"If selected, use a jump host for all SSH connections.\n"
+"\n"
+"Jump host is an alternative to SSH tunneling to access internal machines "
+"through gateway.\n"
+"\n"
+"For all other types of connection, this setting will be ignored.\n"
+msgstr ""
+
+#: ../res/asbru.glade:8942
+msgid "Host name or IP address of the jump server"
+msgstr ""
+
+#: ../res/asbru.glade:9165
+msgid "<b>Global Network Settings</b>"
+msgstr ""
+
+#: ../res/asbru.glade:9198
+msgid "Network Settings"
+msgstr ""
+
+#: ../res/asbru.glade:9227
+msgid "Use <GV:variable name> anywhere to refer to the given value"
+msgstr ""
+
+#: ../res/asbru.glade:9237
+msgid "<b>User defined Global Variables</b>"
+msgstr ""
+
+#: ../res/asbru.glade:9269
+msgid "Global Variables"
+msgstr ""
+
+#: ../res/asbru.glade:9307
+msgid "<b>Global common local commands list</b>"
+msgstr ""
+
+#: ../res/asbru.glade:9339
+msgid "Local Commands"
+msgstr ""
+
+#: ../res/asbru.glade:9377
+msgid "<b>Global common remote commands list</b>"
+msgstr ""
+
+#: ../res/asbru.glade:9409
+msgid "Remote Commands"
+msgstr ""
+
+#: ../res/asbru.glade:9448
+msgid ""
+"<b>Integration of a KeePass database file</b>\n"
+"<small>\n"
+"Ásbrú is using the command line interface of <a href=\"https://keepassxc."
+"org\">KeePassXC</a>\n"
+"to read any KeePass database file and use any entry to automate connection "
+"inside Ásbrú.</small>"
+msgstr ""
+
+#: ../res/asbru.glade:9482
+msgid "KeePass Integration"
+msgstr ""
+
+#: ../res/asbru.glade:9515
+msgid "<b>Keybindings</b>"
+msgstr ""
+
+#: ../res/asbru.glade:9545
+msgid "Keybindings"
+msgstr ""

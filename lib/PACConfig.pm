@@ -64,7 +64,7 @@ my $AUTOSTART_FILE = "$RealBin/res/asbru_start.desktop";
 my $GLADE_FILE = "$RealBin/res/asbru.glade";
 my $CFG_DIR = $ENV{"ASBRU_CFG"};
 my $RES_DIR = "$RealBin/res";
-my $THEME_DIR = "$RES_DIR/themes/default";
+my $THEME_DIR = "$RES_DIR/themes/hamonikr";
 my $SALT = '12345678';
 my $CIPHER = Crypt::CBC->new(-key => 'PAC Manager (David Torrejon Vaquerizas, david.tv@gmail.com)', -cipher => 'Blowfish', -salt => pack('Q', $SALT), -pbkdf => 'opensslv1', -nodeprecate => 1) or die "ERROR: $!";
 
@@ -127,7 +127,7 @@ sub show {
     if ($update) {
         _updateGUIPreferences($self);
     }
-    $self->{_WINDOWCONFIG}->set_title("Default Global Options : $APPNAME (v$APPVERSION)");
+    $self->{_WINDOWCONFIG}->set_title(__t("Default Global Options") . " : $APPNAME (v$APPVERSION)");
     $$self{_WINDOWCONFIG}->present();
     return 1;
 }
@@ -158,7 +158,7 @@ sub _initGUI {
     $$self{_WINDOWCONFIG}->set_icon_name('asbru-app-big');
 
     _($self, 'btnResetDefaults')->set_image(Gtk3::Image->new_from_stock('gtk-undo', 'button'));
-    _($self, 'btnResetDefaults')->set_label('_Reset to DEFAULT values');
+    _($self, 'btnResetDefaults')->set_label(__t('_Reset to DEFAULT values'));
     foreach my $o ('MO', 'TO') {
         foreach my $t ('BE', 'LF', 'AD') {
             _($self, "linkHelp$o$t")->set_label('');
@@ -182,7 +182,7 @@ sub _initGUI {
     _($self, 'btnCfgSetGUIPassword')->set_image(Gtk3::Image->new_from_stock('asbru-protected', 'button'));
     _($self, 'btnCfgSetGUIPassword')->set_label('Set...');
     _($self, 'btnExportYAML')->set_image(Gtk3::Image->new_from_stock('gtk-save-as', 'button'));
-    _($self, 'btnExportYAML')->set_label('Export config...');
+    _($self, 'btnExportYAML')->set_label(__t('Export config...'));
     _($self, 'alignShellOpts')->add(($$self{_SHELL} = PACTermOpts->new())->{container});
     _($self, 'alignGlobalVar')->add(($$self{_VARIABLES} = PACGlobalVarEntry->new())->{container});
     _($self, 'alignCmdRemote')->add(($$self{_CMD_REMOTE} = PACExecEntry->new(undef, undef, 'remote'))->{container});
@@ -770,7 +770,7 @@ sub _updateGUIPreferences {
     my $self = shift;
     my $cfg = shift // $$self{_CFG};
     my %layout = ('Traditional', 0, 'Compact', 1);
-    my %theme = ('default', 0, 'asbru-color', 1, 'asbru-dark', 2, 'system', 3);
+    my %theme = ('default', 0, 'asbru-color', 1, 'asbru-dark', 2, 'system', 3, 'hamonikr', 4);
 
     if (!defined $$cfg{'defaults'}{'layout'}) {
         $$cfg{'defaults'}{'layout'} = 'Traditional';
@@ -788,7 +788,21 @@ sub _updateGUIPreferences {
         $$cfg{'defaults'}{'unprotected color'} = '#FFFFFF';
     }
     if (!defined $$cfg{'defaults'}{'theme'}) {
+        $$cfg{'defaults'}{'theme'} = 'hamonikr';
+    }
+    
+    # Ensure theme name is in English for consistency
+    my $theme_name = $$cfg{'defaults'}{'theme'};
+    if ($theme_name eq '기본' || $theme_name eq 'Default') {
         $$cfg{'defaults'}{'theme'} = 'default';
+    } elsif ($theme_name eq '어둠' || $theme_name eq 'Dark') {
+        $$cfg{'defaults'}{'theme'} = 'asbru-dark';
+    } elsif ($theme_name eq '색상' || $theme_name eq 'Color') {
+        $$cfg{'defaults'}{'theme'} = 'asbru-color';
+    } elsif ($theme_name eq '시스템' || $theme_name eq 'System') {
+        $$cfg{'defaults'}{'theme'} = 'system';
+    } elsif ($theme_name eq '하모니카' || $theme_name eq 'HamoniKR') {
+        $$cfg{'defaults'}{'theme'} = 'hamonikr';
     }
     if (!-d $$cfg{'defaults'}{'session logs folder'}) {
         $$cfg{'defaults'}{'session logs folder'} = "$CFG_DIR/session_logs";

@@ -22,6 +22,10 @@ fi
 
 mkdir $PACKAGE_DIR
 
+# Build translation files before packaging
+echo "Building translation files..."
+cd po && make all && cd ..
+
 tar -cpf "${PACKAGE_DIR}/asbru-cm_$DEBIAN_VERSION.orig.tar" --exclude ".git" --exclude "debian" --exclude "build" .
 cp -r debian build/
 cd ${PACKAGE_DIR}

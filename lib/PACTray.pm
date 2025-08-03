@@ -50,7 +50,7 @@ my $APPNAME = $PACUtils::APPNAME;
 my $APPVERSION = $PACUtils::APPVERSION;
 my $APPICON = "$RealBin/res/asbru-logo-64.png";
 my $TRAYICON = "$RealBin/res/asbru-logo-tray.png";
-my $GROUPICON_ROOT = _pixBufFromFile("$RealBin/res/themes/default/asbru_group.svg");
+my $GROUPICON_ROOT = _pixBufFromFile("$RealBin/res/themes/hamonikr/asbru_group.svg");
 my $CALLBACKS_INITIALIZED = 0;
 
 # END: Define GLOBAL CLASS variables

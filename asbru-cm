@@ -120,7 +120,7 @@ our $CFG_FILE_OLD   = "pac.yml";
 our $CFG_FILE       = "$CFG_DIR/$CFG_FILE_NAME";
 our $BACKUP_DIR     = "bak";
 our $APP_NAME       = PACUtils::_appName();
-our $ASBRU_LANG     = 'en_US.UTF-8'; # no i18n support yet
+our $ASBRU_LANG     = $ENV{LANG} || $ENV{LC_ALL} || $ENV{LC_MESSAGES} || 'en_US.UTF-8';
 our $ASBRU;
 our $VERBOSE        = 0;
 # END: Define GLOBAL variables
@@ -140,9 +140,14 @@ foreach my $arg (@ARGV) {
     }
 }
 
-# Detect language
-print STDERR "INFO: Language detected : $ENV{'LANG'}, forcing to ${ASBRU_LANG}\n";
+# Initialize internationalization
+print STDERR "INFO: Language detected : $ENV{'LANG'}, using locale: ${ASBRU_LANG}\n";
 $ENV{'LANG'} = $ASBRU_LANG;
+
+# Initialize gettext system
+use lib "$RealBin/lib";
+use PACi18n;
+PACi18n::init_i18n($ASBRU_LANG);
 
 # Check for Unity's systray-whitelist presence of 'asbru'
 my $wl = `$ENV{'ASBRU_ENV_FOR_EXTERNAL'} gsettings get com.canonical.Unity.Panel systray-whitelist 2>/dev/null`;

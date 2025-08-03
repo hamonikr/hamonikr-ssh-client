@@ -1,0 +1,1245 @@
+/* HamoniKR Modern Dark Theme for Asbru Connection Manager */
+/* Optimized for GTK3 compatibility */
+
+/* Base button styling - compact like default theme */
+button {
+    background: linear-gradient(to bottom, #2d3748, #4a5568);
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+    padding: 4px 8px;
+    margin: 1px;
+}
+
+button:hover {
+    background: linear-gradient(to bottom, #3182ce, #4299e1);
+    color: #ffffff;
+    border: 1px solid #3182ce;
+}
+
+button:active {
+    background: linear-gradient(to bottom, #2c5282, #3182ce);
+    border: 1px solid #2c5282;
+}
+
+button:focus {
+    background: linear-gradient(to bottom, #3182ce, #4299e1);
+    border: 2px solid #63b3ed;
+}
+
+/* Radio buttons and checkboxes */
+radiobutton, checkbutton {
+    background-color: transparent;
+    color: #e2e8f0;
+    border-radius: 6px;
+    padding: 2px;
+    margin: 1px;
+}
+
+radiobutton:hover, checkbutton:hover {
+    background-color: rgba(99, 179, 237, 0.1);
+    border-radius: 6px;
+}
+
+/* Radio button and checkbox indicators */
+radiobutton radio,
+checkbutton check {
+    background-color: #2d3748;
+    border: 1px solid #4a5568;
+    color: #e2e8f0;
+}
+
+radiobutton:checked radio,
+checkbutton:checked check {
+    background-color: #3182ce;
+    border: 1px solid #3182ce;
+    color: #ffffff;
+}
+
+/* Radio button and checkbox labels */
+radiobutton label,
+checkbutton label {
+    background-color: transparent;
+    color: #e2e8f0;
+}
+
+/* Ensure preferences checkboxes and radiobuttons are fully transparent */
+window.preferences checkbutton label,
+window.preferences radiobutton label {
+    background-color: transparent;
+    color: #e2e8f0;
+}
+
+window.preferences checkbutton check,
+window.preferences radiobutton radio {
+    background-color: #2d3748;
+    border: 1px solid #4a5568;
+}
+
+window.preferences checkbutton:checked check,
+window.preferences radiobutton:checked radio {
+    background-color: #3182ce;
+    border: 1px solid #3182ce;
+}
+
+/* Entry fields */
+entry {
+    background-color: #2d3748;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+    padding: 4px 6px;
+    margin: 1px;
+}
+
+entry:focus {
+    background-color: #1a202c;
+    border: 2px solid #3182ce;
+}
+
+/* Spinbuttons */
+spinbutton {
+    background-color: #2d3748;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+    padding: 2px 4px;
+    margin: 1px;
+    font-size: 0.9em;
+}
+
+spinbutton:hover {
+    border: 1px solid #3182ce;
+    background-color: #1a202c;
+}
+
+spinbutton:focus {
+    border: 2px solid #3182ce;
+    background-color: #1a202c;
+}
+
+/* Special button styling */
+.button-cp {
+    background: #2d3748;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+    padding: 6px 12px;
+    margin: 2px;
+    color: #e2e8f0;
+}
+
+/* Tooltips */
+tooltip {
+    background-color: #1a202c;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.85em;
+}
+
+/* Drag and drop icons */
+.dnd-icon {
+    border: 2px solid #3182ce;
+    border-radius: 8px;
+    background-color: rgba(49, 130, 206, 0.1);
+}
+
+/* Banner styling with HamoniKR colors */
+.banner-fill {
+    background: transparent;
+    padding: 0.5em 0;
+    border-radius: 0 0 12px 12px;
+}
+
+.banner-text {
+    color: #ffffff;
+    text-shadow: 0px 2px 8px rgba(0, 0, 0, 0.5);
+    font-size: 1.2em;
+}
+
+/* Message dialogs */
+messagedialog {
+    background-color: #1a202c;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 12px;
+}
+
+messagedialog > box {
+    margin: 16px;
+    margin-top: 20px;
+    border-radius: 8px;
+}
+
+/* Dialog window classes */
+.w-entervalue {
+    background-color: #1a202c;
+    border-radius: 12px;
+}
+
+.w-renamenode {
+    background-color: #1a202c;
+    border-radius: 12px;
+}
+
+.w-warning {
+    background-color: #1a202c;
+    color: #f6ad55;
+    border: 2px solid #d69e2e;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.w-error {
+    background-color: #1a202c;
+    color: #fc8181;
+    border: 2px solid #e53e3e;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.w-info {
+    background-color: #1a202c;
+    color: #63b3ed;
+    border: 2px solid #3182ce;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.w-confirm {
+    background-color: #1a202c;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+/* TreeView modern dark styling */
+treeview {
+    background-color: #1a202c;
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+treeview:selected {
+    background: linear-gradient(to bottom, #3182ce, #4299e1);
+    color: #ffffff;
+    border-radius: 6px;
+}
+
+treeview row {
+    border-radius: 4px;
+    margin: 1px;
+}
+
+treeview row:hover {
+    background-color: rgba(99, 179, 237, 0.1);
+    border-radius: 4px;
+}
+
+/* TreeView header buttons */
+treeview header button {
+    background: linear-gradient(to bottom, #2d3748, #4a5568);
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 0;
+    padding: 8px;
+}
+
+treeview header button:hover {
+    background: linear-gradient(to bottom, #3182ce, #4299e1);
+    color: #ffffff;
+}
+
+/* Scrollbars */
+scrollbar {
+    background-color: #2d3748;
+    border-radius: 8px;
+}
+
+scrollbar slider {
+    background: linear-gradient(to bottom, #4a5568, #718096);
+    border-radius: 8px;
+    min-width: 12px;
+    min-height: 12px;
+}
+
+scrollbar slider:hover {
+    background: linear-gradient(to bottom, #3182ce, #4299e1);
+}
+
+/* Notebook styling */
+notebook {
+    background-color: #1a202c;
+    border: 1px solid #4a5568;
+    border-radius: 8px;
+}
+
+notebook header {
+    background-color: transparent;
+    border-bottom: 1px solid #4a5568;
+}
+
+notebook tab {
+    background-color: transparent;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    padding: 8px 16px;
+    margin: 0 2px;
+}
+
+notebook tab:checked {
+    background-color: #1a202c;
+    color: #ffffff;
+    border-bottom: 1px solid #1a202c;
+}
+
+notebook tab:hover {
+    background-color: rgba(49, 130, 206, 0.3);
+    background-image: none;
+    color: #ffffff;
+    border: 1px solid #3182ce;
+    border-bottom: none;
+}
+
+/* Ensure tab hover applies to all child elements */
+notebook tab:hover * {
+    background-color: transparent;
+    color: inherit;
+}
+
+notebook tab:hover label {
+    background-color: transparent;
+    color: inherit;
+}
+
+notebook tab label {
+    background-color: transparent;
+    color: inherit;
+}
+
+/* Notebook content area */
+notebook > stack {
+    background-color: #1a202c;
+    border-radius: 0 0 8px 8px;
+    padding: 2px;
+}
+
+/* Menu styling */
+menu {
+    background-color: #1a202c;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+menuitem {
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin: 2px;
+}
+
+menuitem:hover {
+    background: linear-gradient(to bottom, #3182ce, #4299e1);
+    color: #ffffff;
+}
+
+/* Window styling */
+window {
+    background-color: #1a202c;
+    color: #e2e8f0;
+}
+
+/* Main application containers */
+box,
+grid {
+    background-color: #1a202c;
+    color: #e2e8f0;
+}
+
+/* Toolbar styling */
+toolbar {
+    background: linear-gradient(to bottom, #2d3748, #1a202c);
+    color: #e2e8f0;
+    border-bottom: 1px solid #4a5568;
+    padding: 4px;
+}
+
+toolbar button {
+    background-color: #2d3748;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin: 2px;
+    min-width: 60px;
+    min-height: 32px;
+}
+
+toolbar button:hover {
+    background: linear-gradient(to bottom, #3182ce, #4299e1);
+    color: #ffffff;
+    border: 1px solid #3182ce;
+}
+
+toolbar button:active {
+    background: linear-gradient(to bottom, #2c5282, #3182ce);
+    color: #ffffff;
+}
+
+toolbar button image {
+    color: #e2e8f0;
+}
+
+toolbar button:hover image {
+    color: #ffffff;
+}
+
+toolbar button label {
+    background-color: transparent;
+    color: inherit;
+}
+
+toolbar button:hover label {
+    background-color: transparent;
+    color: inherit;
+}
+
+/* Statusbar */
+statusbar {
+    background-color: #2d3748;
+    color: #e2e8f0;
+    border-top: 1px solid #4a5568;
+    padding: 4px 8px;
+}
+
+/* Sidebar and panels */
+.sidebar,
+paned {
+    background-color: #1a202c;
+    color: #e2e8f0;
+}
+
+/* Sidebar buttons */
+.sidebar button {
+    background-color: #2d3748;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin: 2px;
+    min-height: 36px;
+}
+
+.sidebar button:hover {
+    background: linear-gradient(to right, #3182ce, #4299e1);
+    color: #ffffff;
+    border: 1px solid #3182ce;
+}
+
+.sidebar button:active,
+.sidebar button:checked {
+    background: linear-gradient(to right, #2c5282, #3182ce);
+    color: #ffffff;
+    border: 1px solid #2c5282;
+}
+
+.sidebar button image {
+    color: #e2e8f0;
+    margin-right: 8px;
+}
+
+.sidebar button:hover image {
+    color: #ffffff;
+}
+
+.sidebar button label {
+    background-color: transparent;
+    color: inherit;
+}
+
+.sidebar button:hover label {
+    background-color: transparent;
+    color: inherit;
+}
+
+/* Text areas and views */
+textview {
+    background-color: #2d3748;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+textview text {
+    background-color: #2d3748;
+    color: #e2e8f0;
+}
+
+/* Frames */
+frame {
+    background-color: transparent;
+    border: 1px solid #4a5568;
+    border-radius: 8px;
+    padding: 4px;
+    margin: 2px;
+}
+
+frame > label {
+    color: #63b3ed;
+    background-color: #1a202c;
+    padding: 0 8px;
+    margin-top: -8px;
+}
+
+/* Group boxes in preferences - more transparent */
+.preferences frame {
+    background-color: rgba(45, 55, 72, 0.1);
+    border: 1px solid #4a5568;
+    border-radius: 8px;
+    padding: 4px;
+    margin: 2px 0;
+}
+
+/* Ultra-compact layout for preferences - match default theme exactly */
+window.preferences frame {
+    padding: 2px;
+    margin: 1px 0;
+    background-color: transparent;
+}
+
+window.preferences box {
+    padding: 0px;
+    margin: 0px;
+    background-color: transparent;
+}
+
+/* Ultra-compact notebook tabs */
+window.preferences notebook tab {
+    padding: 2px 6px;
+    margin: 0;
+    background-color: transparent;
+    border: 1px solid #4a5568;
+    border-bottom: none;
+}
+
+window.preferences notebook tab:checked {
+    background-color: #1a202c;
+    color: #ffffff;
+    border-bottom: 1px solid #1a202c;
+}
+
+window.preferences notebook tab:hover {
+    background-color: rgba(49, 130, 206, 0.3);
+    background-image: none;
+    color: #ffffff;
+    border: 1px solid #3182ce;
+}
+
+/* Ensure tab hover applies to all child elements */
+window.preferences notebook tab:hover * {
+    background-color: transparent;
+    color: inherit;
+}
+
+window.preferences notebook tab:hover label {
+    background-color: transparent;
+    color: inherit;
+}
+
+window.preferences notebook tab label {
+    background-color: transparent;
+    color: inherit;
+}
+
+/* Ensure notebook header is transparent in preferences */
+window.preferences notebook header {
+    background-color: transparent;
+    border-bottom: 1px solid #4a5568;
+}
+
+/* Force all notebook elements to be transparent unless specifically styled */
+window.preferences notebook,
+window.preferences notebook header,
+window.preferences notebook header tabs,
+window.preferences notebook tabs {
+    background-color: transparent;
+    background-image: none;
+}
+
+/* Only selected tabs get background - but allow hover effects */
+window.preferences notebook tab:not(:checked):not(:hover) {
+    background-color: transparent;
+    background-image: none;
+}
+
+/* Ultra-minimal spacing in preference items */
+window.preferences checkbutton,
+window.preferences radiobutton {
+    margin: 0px;
+    padding: 0px;
+    background-color: transparent;
+}
+
+window.preferences entry {
+    padding: 1px 2px;
+    margin: 0px;
+}
+
+window.preferences button {
+    padding: 1px 4px;
+    margin: 0px;
+    background: linear-gradient(to bottom, #2d3748, #4a5568);
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+}
+
+window.preferences button:hover {
+    background: linear-gradient(to bottom, #3182ce, #4299e1);
+    color: #ffffff;
+}
+
+/* Ensure all containers in preferences are transparent */
+window.preferences grid,
+window.preferences viewport,
+window.preferences scrolledwindow,
+window.preferences paned,
+window.preferences revealer,
+window.preferences eventbox,
+window.preferences alignment {
+    background-color: transparent;
+}
+
+/* Force complete transparency for preferences window - except hover states */
+window.preferences *:not(:hover) {
+    background-color: transparent;
+    background-image: none;
+}
+
+/* Allow specific hover effects - override transparency */
+window.preferences notebook tab:hover,
+window.preferences notebook tab:hover *,
+window.preferences button:hover {
+    background-color: inherit;
+    background-image: inherit;
+}
+
+/* Force hover state to override all transparency rules */
+window.preferences notebook tab:hover {
+    background-color: rgba(49, 130, 206, 0.3);
+    background-image: none;
+}
+
+window.preferences notebook tab:hover * {
+    background-color: transparent;
+}
+
+/* Only apply dark background to specific interactive elements that need it */
+window.preferences entry,
+window.preferences spinbutton,
+window.preferences spinbutton entry,
+window.preferences spinbutton > entry,
+window.preferences combobox button {
+    background-color: #2d3748;
+    background-image: none;
+    color: #e2e8f0;
+}
+
+/* Spinbutton buttons */
+window.preferences spinbutton button {
+    background-color: #4a5568;
+    background-image: none;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+}
+
+window.preferences spinbutton button:hover {
+    background-color: #3182ce;
+    background-image: none;
+    color: #ffffff;
+}
+
+/* Buttons get gradient background */
+window.preferences button {
+    background: linear-gradient(to bottom, #2d3748, #4a5568);
+    background-image: linear-gradient(to bottom, #2d3748, #4a5568);
+}
+
+window.preferences button:hover {
+    background: linear-gradient(to bottom, #3182ce, #4299e1);
+    background-image: linear-gradient(to bottom, #3182ce, #4299e1);
+}
+
+/* Text fields and file choosers */
+window.preferences filechooserbutton,
+window.preferences filechooserbutton button,
+window.preferences filechooserbutton entry {
+    background-color: #2d3748;
+    background-image: none;
+    color: #e2e8f0;
+}
+
+/* Override any remaining system defaults */
+window.preferences widget,
+window.preferences container {
+    background-color: transparent;
+    background-image: none;
+}
+
+/* Labels */
+label {
+    color: #e2e8f0;
+    background-color: transparent;
+}
+
+/* Button labels - ensure they inherit button styling */
+button label {
+    background-color: transparent;
+    color: inherit;
+}
+
+button:hover label {
+    background-color: transparent;
+    color: inherit;
+}
+
+button:active label {
+    background-color: transparent;
+    color: inherit;
+}
+
+button:focus label {
+    background-color: transparent;
+    color: inherit;
+}
+
+/* Ensure all button children have transparent backgrounds */
+button * {
+    background-color: transparent;
+}
+
+/* Button box labels */
+buttonbox button label {
+    background-color: transparent;
+    color: inherit;
+}
+
+/* Dialog button labels */
+dialog button label {
+    background-color: transparent;
+    color: inherit;
+}
+
+/* Combobox button labels */
+combobox button label {
+    background-color: transparent;
+    color: inherit;
+}
+
+/* Paned separators */
+paned > separator {
+    background-color: #4a5568;
+    border: none;
+    min-width: 2px;
+    min-height: 2px;
+}
+
+/* Scrolled windows */
+scrolledwindow {
+    background-color: #1a202c;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+}
+
+/* Viewport */
+viewport {
+    background-color: #1a202c;
+    color: #e2e8f0;
+}
+
+/* Progress bars */
+progressbar {
+    background-color: #2d3748;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+}
+
+progressbar progress {
+    background: linear-gradient(to right, #3182ce, #4299e1);
+    border-radius: 4px;
+}
+
+/* Combobox */
+combobox {
+    background-color: #2d3748;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+}
+
+combobox button {
+    background-color: #2d3748;
+    color: #e2e8f0;
+    border: none;
+    border-radius: 0 6px 6px 0;
+    padding: 6px 12px;
+}
+
+combobox button:hover {
+    background-color: #3182ce;
+    color: #ffffff;
+}
+
+combobox button arrow {
+    color: #e2e8f0;
+}
+
+combobox button:hover arrow {
+    color: #ffffff;
+}
+
+/* Combobox dropdown */
+combobox popover {
+    background-color: #1a202c;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+}
+
+combobox popover modelbutton {
+    background-color: transparent;
+    color: #e2e8f0;
+    padding: 8px 12px;
+}
+
+combobox popover modelbutton:hover {
+    background-color: #3182ce;
+    color: #ffffff;
+}
+
+/* Popover */
+popover {
+    background-color: #1a202c;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+/* Scale (sliders) */
+scale {
+    background-color: transparent;
+}
+
+scale slider {
+    background: linear-gradient(to bottom, #3182ce, #4299e1);
+    border: 1px solid #2c5282;
+    border-radius: 50%;
+    min-width: 16px;
+    min-height: 16px;
+}
+
+scale trough {
+    background-color: #4a5568;
+    border-radius: 3px;
+    min-height: 6px;
+}
+
+/* Switch */
+switch {
+    background-color: #4a5568;
+    border-radius: 12px;
+    min-width: 48px;
+    min-height: 24px;
+}
+
+switch:checked {
+    background-color: #3182ce;
+}
+
+switch slider {
+    background-color: #ffffff;
+    border-radius: 50%;
+    min-width: 20px;
+    min-height: 20px;
+}
+
+/* Headerbar */
+headerbar {
+    background: linear-gradient(to bottom, #2d3748, #1a202c);
+    color: #e2e8f0;
+    border-bottom: 1px solid #4a5568;
+    border-radius: 0;
+}
+
+headerbar button {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+}
+
+headerbar button:hover {
+    background: rgba(49, 130, 206, 0.2);
+    border: 1px solid #3182ce;
+}
+
+/* Dialog specific styling */
+dialog {
+    background-color: #1a202c;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 12px;
+}
+
+dialog box {
+    background-color: #1a202c;
+    color: #e2e8f0;
+}
+
+dialog button {
+    background: linear-gradient(to bottom, #2d3748, #4a5568);
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 8px;
+    padding: 8px 16px;
+    margin: 4px;
+}
+
+dialog button:hover {
+    background: linear-gradient(to bottom, #3182ce, #4299e1);
+    color: #ffffff;
+    border: 1px solid #3182ce;
+}
+
+dialog button.suggested-action {
+    background: linear-gradient(to bottom, #3182ce, #4299e1);
+    color: #ffffff;
+    border: 1px solid #3182ce;
+}
+
+dialog button.destructive-action {
+    background: linear-gradient(to bottom, #e53e3e, #fc8181);
+    color: #ffffff;
+    border: 1px solid #e53e3e;
+}
+
+/* Question dialog specific */
+.question {
+    background-color: #1a202c;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 12px;
+}
+
+/* Button box styling */
+buttonbox {
+    background-color: transparent;
+}
+
+buttonbox button {
+    background: linear-gradient(to bottom, #2d3748, #4a5568);
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 8px;
+    padding: 8px 16px;
+    margin: 4px;
+    min-width: 80px;
+}
+
+buttonbox button:hover {
+    background: linear-gradient(to bottom, #3182ce, #4299e1);
+    color: #ffffff;
+    border: 1px solid #3182ce;
+}
+
+/* Icon view improvements */
+iconview {
+    background-color: #1a202c;
+    color: #e2e8f0;
+}
+
+iconview:selected {
+    background-color: #3182ce;
+    color: #ffffff;
+}
+
+/* Image widget improvements */
+image {
+    color: #e2e8f0;
+}
+
+/* Preferences window specific styling */
+window.preferences {
+    background-color: #1a202c;
+    color: #e2e8f0;
+}
+
+window.preferences box {
+    background-color: transparent;
+}
+
+window.preferences grid {
+    background-color: transparent;
+}
+
+/* Let preferences window size naturally - no padding like default */
+window.preferences notebook > stack {
+    padding: 0px;
+}
+
+/* Model buttons (for dropdowns) */
+modelbutton {
+    background-color: transparent;
+    color: #e2e8f0;
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+modelbutton:hover {
+    background-color: #3182ce;
+    color: #ffffff;
+}
+
+/* List boxes */
+listbox {
+    background-color: #2d3748;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+}
+
+listbox row {
+    background-color: transparent;
+    color: #e2e8f0;
+    padding: 8px 12px;
+}
+
+listbox row:hover {
+    background-color: rgba(49, 130, 206, 0.2);
+}
+
+listbox row:selected {
+    background-color: #3182ce;
+    color: #ffffff;
+}
+
+/* Separator */
+separator {
+    background-color: #4a5568;
+    border-radius: 1px;
+}
+
+/* Dialog and popup styling */
+dialog {
+    background-color: #1a202c;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 8px;
+}
+
+/* All dialog elements transparent background */
+dialog * {
+    background-color: transparent;
+    color: inherit;
+}
+
+/* Dialog specific containers */
+dialog box,
+dialog grid,
+dialog frame,
+dialog viewport,
+dialog scrolledwindow,
+dialog paned,
+dialog revealer,
+dialog eventbox {
+    background-color: transparent;
+}
+
+/* Dialog entries */
+dialog entry {
+    background-color: #2d3748;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+    padding: 4px 8px;
+    margin: 2px;
+}
+
+dialog entry:focus {
+    background-color: #1a202c;
+    border: 2px solid #3182ce;
+}
+
+/* Dialog buttons */
+dialog button {
+    background: linear-gradient(to bottom, #2d3748, #4a5568);
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+    padding: 4px 12px;
+    margin: 2px;
+}
+
+dialog button:hover {
+    background: linear-gradient(to bottom, #3182ce, #4299e1);
+    color: #ffffff;
+    border: 1px solid #3182ce;
+}
+
+dialog button label {
+    background-color: transparent;
+    color: inherit;
+}
+
+/* Dialog labels */
+dialog label {
+    background-color: transparent;
+    color: #e2e8f0;
+}
+
+/* Popover styling (for dropdown menus, etc.) */
+popover {
+    background-color: #1a202c;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+}
+
+popover * {
+    background-color: transparent;
+    color: inherit;
+}
+
+popover modelbutton {
+    background-color: transparent;
+    color: #e2e8f0;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+
+popover modelbutton:hover {
+    background-color: #3182ce;
+    color: #ffffff;
+}
+
+/* Message dialog specific styling */
+messagedialog {
+    background-color: #1a202c;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 8px;
+}
+
+messagedialog * {
+    background-color: transparent;
+    color: inherit;
+}
+
+messagedialog button {
+    background: linear-gradient(to bottom, #2d3748, #4a5568);
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+    padding: 6px 16px;
+    margin: 4px;
+}
+
+messagedialog button:hover {
+    background: linear-gradient(to bottom, #3182ce, #4299e1);
+    color: #ffffff;
+    border: 1px solid #3182ce;
+}
+
+/* File chooser dialog styling */
+filechooserdialog {
+    background-color: #1a202c;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 8px;
+}
+
+filechooserdialog * {
+    background-color: transparent;
+    color: inherit;
+}
+
+/* File chooser sidebar */
+filechooserdialog sidebar {
+    background-color: #2d3748;
+    border-right: 1px solid #4a5568;
+    padding: 8px;
+}
+
+/* File chooser main area */
+filechooserdialog paned {
+    background-color: transparent;
+}
+
+/* File list area with proper spacing */
+filechooserdialog scrolledwindow {
+    background-color: transparent;
+    margin-left: 12px;
+    padding: 8px;
+}
+
+/* File chooser treeview */
+filechooserdialog treeview {
+    background-color: transparent;
+    color: #e2e8f0;
+}
+
+filechooserdialog treeview:selected {
+    background-color: #3182ce;
+    color: #ffffff;
+}
+
+/* File chooser buttons */
+filechooserdialog button {
+    background: linear-gradient(to bottom, #2d3748, #4a5568);
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+    padding: 6px 12px;
+    margin: 2px;
+}
+
+filechooserdialog button:hover {
+    background: linear-gradient(to bottom, #3182ce, #4299e1);
+    color: #ffffff;
+    border: 1px solid #3182ce;
+}
+
+/* File chooser entry */
+filechooserdialog entry {
+    background-color: #2d3748;
+    color: #e2e8f0;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin: 2px;
+}
+
+/* File chooser pathbar */
+filechooserdialog pathbar {
+    background-color: #2d3748;
+    border: 1px solid #4a5568;
+    border-radius: 6px;
+    padding: 4px;
+    margin: 4px 12px 4px 4px;
+}
+
+filechooserdialog pathbar button {
+    background-color: transparent;
+    border: none;
+    padding: 4px 8px;
+    margin: 0 1px;
+}
+
+filechooserdialog pathbar button:hover {
+    background-color: rgba(49, 130, 206, 0.2);
+    border-radius: 4px;
+}

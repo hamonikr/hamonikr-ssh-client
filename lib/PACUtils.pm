@@ -47,6 +47,9 @@ use OSSP::uuid;
 use Encode;
 use DynaLoader; # Required for PACTerminal and PACShell modules
 
+# Internationalization
+use PACi18n qw(__i18n __ni18n init_i18n);
+
 # GTK
 use Gtk3 '-init';
 use Gtk3::Gdk;
@@ -59,6 +62,7 @@ require Exporter;
 @EXPORT     = qw(
     _
     __
+    __t
     _screenshot
     _scale
     _pixBufFromFile
@@ -137,7 +141,7 @@ if ($ARCH_TMP =~ /x86_64/gio) {
     $ARCH = 32;
 }
 my $RES_DIR = "$RealBin/res";
-my $THEME_DIR = "$RES_DIR/themes/default";
+my $THEME_DIR = "$RES_DIR/themes/hamonikr";
 my $SPLASH_IMG = "$RES_DIR/asbru-logo-400.png";
 my $CFG_DIR = $ENV{"ASBRU_CFG"};
 my $CFG_FILE = "$CFG_DIR/asbru.yml";
@@ -272,6 +276,12 @@ sub __text {
     $str =~ s/&gt;/>/go;
 
     return $str;
+};
+
+# Translation function - wrapper for gettext
+sub __t {
+    my $msgid = shift // '';
+    return __i18n($msgid);
 };
 
 sub _splash {
@@ -2169,6 +2179,8 @@ sub _cfgSanityCheck {
     $$cfg{'defaults'}{'show favourites in unity'} //= 0;
     $$cfg{'defaults'}{'capture xterm title'} //= 0;
     $$cfg{'defaults'}{'tree overlay scrolling'} //= 1;
+    $$cfg{'defaults'}{'theme'} //= 'hamonikr';
+    $$cfg{'defaults'}{'layout'} //= 'Traditional';
 
     $$cfg{'defaults'}{'global variables'} //= {};
     $$cfg{'defaults'}{'local commands'} //= [];

@@ -2,7 +2,7 @@ Source: asbru-cm
 Section: networking
 Priority: optional
 Maintainer: Ásbrú Project Team <contact@asbru-cm.net>
-Build-Depends: debhelper (>= 9)
+Build-Depends: debhelper (>= 9), gettext
 Standards-Version: 3.9.8
 Homepage: https://www.asbru-cm.net
 Vcs-Git: https://github.com/asbru-cm/asbru-cm.git

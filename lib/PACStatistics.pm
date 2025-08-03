@@ -276,7 +276,7 @@ sub _buildStatisticsGUI {
 
     $w{hboxReset} = Gtk3::HBox->new(0, 5);
     $w{hboxReset}->pack_start(Gtk3::Image->new_from_stock('gtk-refresh', 'menu'), 0, 1, 5);
-    $w{hboxReset}->pack_start(Gtk3::Label->new("Reset\nStatistics"), 0, 1, 5);
+    $w{hboxReset}->pack_start(Gtk3::Label->new(__t("Reset\nStatistics")), 0, 1, 5);
     $w{btnReset} = Gtk3::Button->new();
     $w{btnReset}->set_size_request(155, 0);
     $w{btnReset}->set_valign('GTK_ALIGN_CENTER');

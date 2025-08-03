@@ -167,7 +167,7 @@ sub _buildScreenshotsGUI {
     $w{btnadd}->set('can_focus', 0);
 
     $w{hboxbtnadd}->pack_start(Gtk3::Image->new_from_stock('gtk-add', 'menu'), 0, 1, 5);
-    $w{hboxbtnadd}->pack_start(Gtk3::Label->new("Add\nScreenshot"), 0, 1, 5);
+    $w{hboxbtnadd}->pack_start(Gtk3::Label->new(__t("Add\nScreenshot")), 0, 1, 5);
 
 
     $w{bbox}->add($w{btnadd});
@@ -179,7 +179,7 @@ sub _buildScreenshotsGUI {
     $w{btnopenfolder}->set('can_focus', 0);
 
     $w{hboxbtnopenfolder}->pack_start(Gtk3::Image->new_from_stock('gtk-open', 'menu'), 0, 1, 5);
-    $w{hboxbtnopenfolder}->pack_start(Gtk3::Label->new("Open Folder"), 0, 1, 5);
+    $w{hboxbtnopenfolder}->pack_start(Gtk3::Label->new(__t("Open Folder")), 0, 1, 5);
 
 
     $w{bbox}->add($w{btnopenfolder});

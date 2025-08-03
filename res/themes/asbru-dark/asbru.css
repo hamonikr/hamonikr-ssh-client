@@ -49,7 +49,7 @@ tooltip {
 .banner-text {
   color: #EEE;
   text-shadow: 0px 0px 8px rgba(17, 17, 17, 0.75);
-  font-size: 2.5em;
+  font-size: 1.5em;
 }
 messagedialog {
   border: 1px solid #888888;
@@ -84,22 +84,16 @@ treeview:selected {
     background-color: #555555;
 }
 
-/* Force white text color for all tree view cells */
+/* TreeView styling */
+/*
 treeview text {
-    color: #FFFFFF !important;
+    color: #ffffff;
 }
-
-/* More specific selectors for connection tree */
 treeview cell {
-    color: #FFFFFF !important;
+    color: #ffffff;
 }
-
 treeview cellrenderertext {
-    color: #FFFFFF !important;
+    color: #ffffff;
 }
-
-/* Override any markup color settings */
-treeview * {
-    color: #FFFFFF !important;
-}
+*/
 

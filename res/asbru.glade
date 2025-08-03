@@ -3515,6 +3515,7 @@ Connect to server and open a new local connection instead</property>
                               <item id="asbru-color" translatable="yes">asbru-color</item>
                               <item id="asbru-dark" translatable="yes">asbru-dark</item>
                               <item id="system" translatable="yes">system</item>
+                              <item id="hamonikr" translatable="yes">hamonikr</item>
                             </items>
                           </object>
                           <packing>
@@ -5221,6 +5222,8 @@ Otherwise, only the icon will be shown and save screen space.</property>
                         <property name="margin_right">5</property>
                         <property name="margin_top">5</property>
                         <property name="margin_bottom">5</property>
+                        <property name="row_spacing">8</property>
+                        <property name="column_spacing">5</property>
                         <child>
                           <object class="GtkEntry" id="entryCfgHostKeyVerification">
                             <property name="visible">True</property>

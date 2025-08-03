@@ -68,7 +68,7 @@ my $APPNAME = $PACUtils::APPNAME;
 my $APPVERSION = $PACUtils::APPVERSION;
 my $RES_DIR = "$RealBin/res";
 my $AUTOSTART_FILE = "$RES_DIR/asbru_start.desktop";
-my $THEME_DIR = "$RES_DIR/themes/defualt";
+my $THEME_DIR = "$RES_DIR/themes/hamonikr";
 my $GLADE_FILE = "$RES_DIR/asbru.glade";
 my $INIT_CFG_FILE = "$RES_DIR/asbru.yml";
 my $CFG_DIR = $ENV{"ASBRU_CFG"};
@@ -103,7 +103,20 @@ sub new {
     $self->{_TXTOPTSBUFFER} = undef;
 
     if ($$self{_CFG}{defaults}{theme}) {
-        $THEME_DIR = "$RES_DIR/themes/$$self{_CFG}{defaults}{theme}";
+        # Ensure theme name is in English for directory path
+        my $theme_name = $$self{_CFG}{defaults}{theme};
+        if ($theme_name eq '기본' || $theme_name eq 'Default') {
+            $theme_name = 'default';
+        } elsif ($theme_name eq '어둠' || $theme_name eq 'Dark') {
+            $theme_name = 'asbru-dark';
+        } elsif ($theme_name eq '색상' || $theme_name eq 'Color') {
+            $theme_name = 'asbru-color';
+        } elsif ($theme_name eq '시스템' || $theme_name eq 'System') {
+            $theme_name = 'system';
+        } elsif ($theme_name eq '하모니카' || $theme_name eq 'HamoniKR') {
+            $theme_name = 'hamonikr';
+        }
+        $THEME_DIR = "$RES_DIR/themes/$theme_name";
     }
 
     # Setup known connection methods

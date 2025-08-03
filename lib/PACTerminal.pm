@@ -2255,7 +2255,7 @@ sub _vteMenu {
     }});
 
     # Add take screenshot
-    push(@vte_menu_items, {label => 'Take Screenshot', stockicon => 'gtk-media-record', sensitive => $$self{_UUID} ne '__PAC_SHELL__', code => sub {
+    push(@vte_menu_items, {label => __t('Take Screenshot'), stockicon => 'gtk-media-record', sensitive => $$self{_UUID} ne '__PAC_SHELL__', code => sub {
         my $screenshot_file = '';
         $screenshot_file = '/tmp/asbru_screenshot_' . rand(123456789). '.png';
         while(-f $screenshot_file) {

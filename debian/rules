@@ -17,6 +17,19 @@
 %:
 	dh $@
 
+# Build translations
+override_dh_auto_build:
+	# Build translation files
+	cd po && $(MAKE) all
+
+# Install translations to system locale directories
+override_dh_auto_install:
+	dh_auto_install
+	# Install translation files to system locale directories
+	for lang in ko; do \
+		mkdir -p debian/asbru-cm/usr/share/locale/$$lang/LC_MESSAGES; \
+		install -m 644 po/$$lang.mo debian/asbru-cm/usr/share/locale/$$lang/LC_MESSAGES/asbru-cm.mo; \
+	done
 
 # dh_make generated override targets
 # This is example for Cmake (See https://bugs.debian.org/641051 )
