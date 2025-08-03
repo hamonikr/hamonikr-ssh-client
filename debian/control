@@ -1,20 +1,20 @@
-Source: asbru-cm
+Source: hamonikr-ssh
 Section: networking
 Priority: optional
-Maintainer: Ásbrú Project Team <contact@asbru-cm.net>
+Maintainer: HamoniKR <pkg@hamonikr.org>
 Build-Depends: debhelper (>= 9), gettext
 Standards-Version: 3.9.8
-Homepage: https://www.asbru-cm.net
-Vcs-Git: https://github.com/asbru-cm/asbru-cm.git
-Vcs-Browser: https://github.com/asbru-cm/asbru-cm.git
+Homepage: https://hamonikr.org
+Vcs-Git: https://github.com/hamonikr/hamonikr-ssh-client.git
+Vcs-Browser: https://github.com/hamonikr/hamonikr-ssh-client
 
-Package: asbru-cm
+Package: hamonikr-ssh
 Architecture: all
 Depends: perl, libvte-2.91-0, libcairo-perl, libglib-perl, libpango-perl, libsocket6-perl, libexpect-perl, libyaml-perl, libcrypt-cbc-perl, libcrypt-blowfish-perl, libgtk3-perl, libnet-arp-perl, libossp-uuid-perl, openssh-client, libcrypt-rijndael-perl, libxml-parser-perl, libcanberra-gtk-module, dbus-x11, libgtk3-simplelist-perl, gir1.2-wnck-3.0, gir1.2-vte-2.91, ncat | nmap
 Recommends: keepassxc
 Suggests: telnet, ftp, freerdp-x11 | rdesktop, tigervnc-viewer | xtightvncviewer, mosh, cu | remote-tty, libx11-guitest-perl
-Description: A free and open-source connection manager
- SSH Client for HamoniKR
+Description: SSH Connection Manager for HamoniKR
+ HamoniKR SSH Client - A free and open-source connection manager
  .
  This Program is a user interface that helps organizing
  remote terminal sessions and automating repetitive tasks.

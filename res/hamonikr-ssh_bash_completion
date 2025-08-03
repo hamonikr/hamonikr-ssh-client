@@ -1,0 +1,21 @@
+_hamonikr_ssh_commands()
+{
+	hamonikr-ssh --help | sed -e '1,/^Options:/d' -e '/^See /Q' -e 's/^[\t]\+\(--[^=]\+\)\(=.\+\)* : .*/\1/g' -e 's/^\(.\+\)=.\+/\1=/g' | uniq
+}
+
+_hamonikr_ssh()
+{
+	cur=${COMP_WORDS[COMP_CWORD]}
+	prev=${COMP_WORDS[COMP_CWORD-1]}
+	COMPREPLY=()
+	if [[ "$cur" == "" ]] ; then
+		options=$(_hamonikr_ssh_commands)
+	elif [[ "$cur" == -* ]] ; then
+		options=$(_hamonikr_ssh_commands)
+	fi
+
+	COMPREPLY=( $( compgen -W "$options" -- ${cur} ) )
+}
+
+complete -F _hamonikr_ssh hamonikr-ssh
+complete -F _hamonikr_ssh asbru-cm

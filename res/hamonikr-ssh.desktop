@@ -4,9 +4,9 @@ Name[ko]=SSH Client
 Comment=SSH Connection Manager is a user interface that helps organizing remote terminal sessions and automating repetitive tasks.
 Comment[ko]=원격 접속을 위한 SSH 접속 프로그램
 Terminal=false
-Icon=asbru-cm
+Icon=hamonikr-ssh
 Type=Application
-Exec=env GDK_BACKEND=x11 asbru-cm
+Exec=env GDK_BACKEND=x11 hamonikr-ssh
 StartupNotify=true
 Categories=Utility;TerminalEmulator;GTK;
 X-GNOME-Autostart-enabled=false
@@ -15,16 +15,16 @@ Keywords=ssh;terminal,remote,시큐어쉘,telnel,scp,sftp,connection,emulator,pu
 
 [Desktop Action Shell]
 Name=Start local shell
-Exec=env GDK_BACKEND=x11 asbru-cm --start-shell
+Exec=env GDK_BACKEND=x11 hamonikr-ssh --start-shell
 
 [Desktop Action Quick]
 Name=Quick connect...
-Exec=env GDK_BACKEND=x11 asbru-cm --quick-conn
+Exec=env GDK_BACKEND=x11 hamonikr-ssh --quick-conn
 
 [Desktop Action ReadOnly]
 Name=Start Read-Only instance
-Exec=env GDK_BACKEND=x11 asbru-cm --readonly --no-backup
+Exec=env GDK_BACKEND=x11 hamonikr-ssh --readonly --no-backup
 
 [Desktop Action Tray]
 Name=Start in system tray
-Exec=env GDK_BACKEND=x11 asbru-cm --iconified
+Exec=env GDK_BACKEND=x11 hamonikr-ssh --iconified

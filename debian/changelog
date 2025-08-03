@@ -1,3 +1,20 @@
+hamonikr-ssh (6.4.0-2+hamonikr6) paektu; urgency=medium
+
+  [Kevin Kim]
+  * Update homepage to https://hamonikr.org
+  * Update maintainer to HamoniKR
+  * Update VCS information to HamoniKR repository
+
+ -- HamoniKR <pkg@hamonikr.org>  Fri, 03 Jan 2025 11:00:00 +0900
+
+hamonikr-ssh (6.4.0-2+hamonikr5) paektu; urgency=medium
+
+  [Kevin Kim]
+  * Rename package from asbru-cm to hamonikr-ssh
+  * Add hamonikr-ssh symlink to asbru-cm executable
+
+ -- HamoniKR <pkg@hamonikr.org>  Fri, 03 Jan 2025 10:00:00 +0900
+
 asbru-cm (6.4.0-2+hamonikr4) paektu; urgency=medium
 
   [Kevin Kim]

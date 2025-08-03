@@ -1,0 +1,3 @@
+/opt/asbru/asbru-cm /usr/bin/asbru-cm
+/opt/asbru/asbru-cm /usr/bin/hamonikr-ssh
+/opt/asbru/res/asbru-logo.svg /usr/share/icons/hicolor/scalable/apps/hamonikr-ssh.svg
