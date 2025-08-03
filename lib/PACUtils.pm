@@ -2140,8 +2140,9 @@ sub _cfgSanityCheck {
     #DevNote: option currently disabled
     $$cfg{'defaults'}{'check versions at start'} //= 0;
     $$cfg{'defaults'}{'show statistics'} //= 1;
-    $$cfg{'defaults'}{'protected color'} //= '#FFB022'; #orange
-    $$cfg{'defaults'}{'protected set'} //= 'background';
+    $$cfg{'defaults'}{'protected color'} //= '#FFFFFF'; #white for dark theme
+    $$cfg{'defaults'}{'protected set'} //= 'foreground';
+    $$cfg{'defaults'}{'unprotected color'} //= '#FFFFFF'; #white for dark theme
     if ($$cfg{'defaults'}{'version'} lt '4.5.0.1') {
         $$cfg{'defaults'}{'use gui password'} = 0;
         $$cfg{'defaults'}{'gui password'} = '';

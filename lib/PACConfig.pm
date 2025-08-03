@@ -784,6 +784,9 @@ sub _updateGUIPreferences {
     if (!defined $$cfg{'defaults'}{'unprotected set'}) {
         $$cfg{'defaults'}{'unprotected set'} = 'foreground';
     }
+    if (!defined $$cfg{'defaults'}{'unprotected color'}) {
+        $$cfg{'defaults'}{'unprotected color'} = '#FFFFFF';
+    }
     if (!defined $$cfg{'defaults'}{'theme'}) {
         $$cfg{'defaults'}{'theme'} = 'default';
     }

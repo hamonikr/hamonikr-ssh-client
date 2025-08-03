@@ -2486,10 +2486,10 @@ sub __treeBuildNodeName {
 
     my $is_group = $$self{_CFG}{'environments'}{$uuid}{'_is_group'} // 0;
     my $protected = ($$self{_CFG}{'environments'}{$uuid}{'_protected'} // 0) || 0;
-    my $p_set = $$self{_CFG}{defaults}{'protected set'};
+    my $p_set = $$self{_CFG}{defaults}{'protected set'} // ($$self{_THEME} =~ /dark/ ? 'foreground' : 'background');
     my $p_unset = $$self{_CFG}{defaults}{'unprotected set'} // 'foreground';
-    my $p_color = $$self{_CFG}{defaults}{'protected color'};
-    my $p_uncolor = $$self{_CFG}{defaults}{'unprotected color'} // '#000000';
+    my $p_color = $$self{_CFG}{defaults}{'protected color'} // ($$self{_THEME} =~ /dark/ ? '#FFFFFF' : '#FFB022');
+    my $p_uncolor = $$self{_CFG}{defaults}{'unprotected color'} // ($$self{_THEME} =~ /dark/ ? '#FFFFFF' : '#000000');
 
     if ($name) {
         $name = __($name);
@@ -2499,10 +2499,15 @@ sub __treeBuildNodeName {
     if ($is_group) {
         $bold = " weight='bold'";
     }
-    if ($protected) {
-        $pset = "$p_set='$p_color'";
+    if ($$self{_THEME} =~ /dark/) {
+        # 다크테마에서는 CSS에서 색상을 제어하므로 색상 마크업 제거
+        $pset = "";
     } else {
-        $pset = "$p_unset='$p_uncolor'";
+        if ($protected) {
+            $pset = "$p_set='$p_color'";
+        } else {
+            $pset = "$p_unset='$p_uncolor'";
+        }
     }
     $name = "<span $pset$bold font='$$self{_CFG}{defaults}{'tree font'}'> $name</span>";
 

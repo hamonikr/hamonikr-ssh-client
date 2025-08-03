@@ -73,3 +73,33 @@ messagedialog > box {
 .w-confirm {
 }
 
+/* TreeView styles for connection list */
+treeview {
+    color: #FFFFFF;
+    background-color: transparent;
+}
+
+treeview:selected {
+    color: #FFFFFF;
+    background-color: #555555;
+}
+
+/* Force white text color for all tree view cells */
+treeview text {
+    color: #FFFFFF !important;
+}
+
+/* More specific selectors for connection tree */
+treeview cell {
+    color: #FFFFFF !important;
+}
+
+treeview cellrenderertext {
+    color: #FFFFFF !important;
+}
+
+/* Override any markup color settings */
+treeview * {
+    color: #FFFFFF !important;
+}
+
