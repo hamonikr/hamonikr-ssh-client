@@ -1,3 +1,9 @@
+hamonikr-ssh (6.4.4) sejong; urgency=medium
+
+  * Release for HamoniKR Sejong
+
+ -- HamoniKR <pkg@hamonikr.org>  Thu, 07 Aug 2025 15:19:46 +0900
+
 hamonikr-ssh (6.4.3) sejong; urgency=medium
 
   [Kevin Kim]
