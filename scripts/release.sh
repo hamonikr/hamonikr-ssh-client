@@ -143,6 +143,29 @@ fi
 # 새 버전 생성
 NEW_VERSION=$(increment_version $CURRENT_VERSION $VERSION_TYPE)
 
+# dch 명령어 존재 확인
+if ! command -v dch &> /dev/null; then
+    echo -e "${RED}Error: dch 명령어를 찾을 수 없습니다. devscripts 패키지를 설치해주세요.${NC}"
+    echo -e "${YELLOW}설치 명령어: sudo apt-get install devscripts${NC}"
+    exit 1
+fi
+
+# debian/changelog 업데이트
+echo -e "\n${YELLOW}debian/changelog 업데이트 중...${NC}"
+# 새 버전으로 업데이트 (v 접두사 제거)
+NEW_DEBIAN_VERSION="${NEW_VERSION#v}"
+
+# 현재 changelog 버전 확인
+echo -e "${YELLOW}업데이트 전 changelog 버전:${NC}"
+head -n 1 debian/changelog
+
+# dch를 사용하여 새로운 changelog 엔트리 생성
+DEBEMAIL="pkg@hamonikr.org" DEBFULLNAME="HamoniKR" dch -v "${NEW_DEBIAN_VERSION}" -D "sejong" -u "medium" "Release for HamoniKR Sejong"
+
+# 업데이트 후 changelog 버전 확인
+echo -e "${YELLOW}업데이트 후 changelog 버전:${NC}"
+head -n 1 debian/changelog
+
 # lib/PACUtils.pm 버전 업데이트
 echo -e "\n${YELLOW}lib/PACUtils.pm 버전 업데이트 중...${NC}"
 # 업데이트 전 버전 출력
@@ -187,9 +210,9 @@ else
     fi
 fi
 
-# lib/PACUtils.pm 변경사항 커밋
-echo -e "\n${YELLOW}lib/PACUtils.pm 변경사항 커밋${NC}"
-git add lib/PACUtils.pm
+# 버전 변경사항 커밋
+echo -e "\n${YELLOW}버전 변경사항 커밋${NC}"
+git add lib/PACUtils.pm debian/changelog
 git commit -m "chore: bump version to ${NEW_VERSION}"
 
 # 릴리즈 프로세스 실행

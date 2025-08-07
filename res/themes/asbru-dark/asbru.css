@@ -31,7 +31,7 @@ checkbutton:hover, radiobutton:hover {
 }
 .button-cp {
     border: 1px solid rgba(1,1,1,0);
-    border-radius: 0px;
+    border-radius: 6px;
     padding: 0px;
     margin: 0px;
 }
@@ -43,7 +43,7 @@ tooltip {
 }
 
 .banner-fill {
-  background-image: linear-gradient(to right, #007aff, #2fedde);
+  background: transparent;
   padding: 0.25em 0;
 }
 .banner-text {
