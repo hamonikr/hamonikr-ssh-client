@@ -97,6 +97,11 @@ entry:focus {
     border: 2px solid #3182ce;
 }
 
+entry selection {
+    background-color: #3182ce;
+    color: #ffffff;
+}
+
 /* Spinbuttons */
 spinbutton {
     background-color: #2d3748;
@@ -480,6 +485,11 @@ textview {
 textview text {
     background-color: #2d3748;
     color: #e2e8f0;
+}
+
+textview text selection {
+    background-color: #3182ce;
+    color: #ffffff;
 }
 
 /* Frames */
@@ -1074,6 +1084,11 @@ dialog entry:focus {
     border: 2px solid #3182ce;
 }
 
+dialog entry selection {
+    background-color: #3182ce;
+    color: #ffffff;
+}
+
 /* Dialog buttons */
 dialog button {
     background: linear-gradient(to bottom, #2d3748, #4a5568);
@@ -1221,6 +1236,11 @@ filechooserdialog entry {
     border-radius: 6px;
     padding: 6px 10px;
     margin: 2px;
+}
+
+filechooserdialog entry selection {
+    background-color: #3182ce;
+    color: #ffffff;
 }
 
 /* File chooser pathbar */
